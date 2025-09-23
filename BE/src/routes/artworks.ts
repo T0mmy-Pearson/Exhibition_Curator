@@ -7,7 +7,9 @@ import {
   searchMetMuseum,
   searchRijksmuseum,
   getMetArtwork,
-  getRijksArtwork
+  getRijksArtwork,
+  searchFitzwilliam,
+  getFitzwilliamArtwork
 } from '../controllers/artworks';
 
 export const artworksRouter = Router();
@@ -24,3 +26,5 @@ artworksRouter.get('/met/search', searchMetMuseum);
 artworksRouter.get('/met/:object_id', getMetArtwork);
 artworksRouter.get('/rijks/search', searchRijksmuseum);
 artworksRouter.get('/rijks/:object_id', getRijksArtwork);
+artworksRouter.get('/fitzwilliam/search', searchFitzwilliam);
+artworksRouter.get('/fitzwilliam/:uuid', getFitzwilliamArtwork);

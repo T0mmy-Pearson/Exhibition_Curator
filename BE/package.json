@@ -11,7 +11,8 @@
     "test:watch": "jest --watch",
     "seed": "ts-node src/db/seeds/run-seed.ts",
     "setup-test": "./setup-test.sh",
-    "setup-db": "echo 'MongoDB setup not required - using cloud/local MongoDB instance'"
+    "setup-db": "echo 'MongoDB setup not required - using cloud/local MongoDB instance'",
+    "test-fitzwilliam": "node test-fitzwilliam-auth.js"
   },
   "keywords": [
     "api",
