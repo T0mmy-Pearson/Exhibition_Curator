@@ -62,7 +62,7 @@ Exhibition_Curator/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/Exhibition_Curator.git
+   git clone https://github.com/T0mmy-Pearson/Exhibition_Curator.git
    cd Exhibition_Curator
    ```
 
@@ -150,7 +150,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Contact
 
-Project Link: [https://github.com/yourusername/Exhibition_Curator](https://github.com/yourusername/Exhibition_Curator)
+Project Link: [https://github.com/T0mmy-Pearson/Exhibition_Curator](https://github.com/T0mmy-Pearson/Exhibition_Curator)
 
 ---
 
