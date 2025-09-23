@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontend Artwork Gallery
+
+This frontend application displays artworks from external museum APIs in a responsive card-based gallery layout.
+
+## Features
+
+### 🎨 **Artwork Display**
+- **Responsive Grid Layout**: Displays artworks in a responsive grid that adapts to different screen sizes
+- **Artwork Cards**: Each artwork is displayed in a card showing:
+  - High-quality images from museum collections
+  - Artwork title and artist name
+  - Creation date and medium information
+  - Museum collection badge (Met Museum, Fitzwilliam, etc.)
+  - Highlight indicators for featured pieces
+  - Department/category information
+
+### 🔍 **Search & Filtering**
+- **Search Functionality**: Search for artworks by keywords (e.g., "painting", "sculpture", "portrait")
+- **Museum Filtering**: Filter results by specific museums:
+  - All Museums (combined results)
+  - Metropolitan Museum of Art
+  - Fitzwilliam Museum
+  - Rijksmuseum (future)
+- **Quick Search Tags**: Pre-defined search terms for common artwork types
+
+### 🚀 **User Experience**
+- **Loading States**: Smooth loading animations while fetching data
+- **Error Handling**: Graceful error display with retry functionality
+- **Status Indicator**: Real-time API connection status
+- **Dark Mode Support**: Full dark/light theme compatibility
+- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile
+
+## Technical Stack
+
+- **Framework**: Next.js 15 with App Router
+- **Styling**: Tailwind CSS 4
+- **Images**: Next.js Image component with optimized external image loading
+- **TypeScript**: Full type safety for better developer experience
+
+## Components Structure
+
+```
+app/components/
+├── ArtworksPage.tsx      # Main page component
+├── ArtworkList.tsx       # Gallery grid container
+├── ArtworkCard.tsx       # Individual artwork display
+├── ArtworkSearch.tsx     # Search and filter controls
+├── LoadingSpinner.tsx    # Loading state component
+├── ErrorDisplay.tsx      # Error state component
+└── StatusIndicator.tsx   # API connection status
+```
+
+## API Integration
+
+The frontend connects to the backend API at `http://localhost:9090/api/artworks/search` with the following parameters:
+
+- `q`: Search query string
+- `source`: Museum source ('all', 'met', 'fitzwilliam', 'rijks')
+- `limit`: Number of results to fetch
+- `hasImages`: Filter for artworks with images only
+
+## Image Optimization
+
+Configured Next.js Image component to load images from:
+- `images.metmuseum.org` - Metropolitan Museum of Art
+- `api.fitz.ms` - Fitzwilliam Museum
+- `www.fitzmuseum.cam.ac.uk` - Fitzwilliam Museum
+- `media.rijksmuseum.nl` - Rijksmuseum
 
 ## Getting Started
 
-First, run the development server:
+1. Ensure the backend API is running on port 9090
+2. Start the frontend development server:
+   ```bash
+   npm run dev
+   ```
+3. Open http://localhost:3001 in your browser
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Future Enhancements
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Click-through to detailed artwork views
+- Favorite/bookmark functionality
+- Exhibition creation from selected artworks
+- Advanced filtering options (date range, medium, etc.)
+- Infinite scroll or pagination for large result sets
+- Artwork comparison features

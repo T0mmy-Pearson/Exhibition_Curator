@@ -1,17 +1,224 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
+import { User } from '../models/User';
 
-export const getUserFavorites = async (req: Request, res: Response) => {
-  res.status(501).json({ error: 'Not implemented', message: 'Get user favorites not yet implemented' });
+interface AuthenticatedRequest extends Request {
+  user?: any;
+}
+
+// Get current user's favorite artworks
+export const getUserFavorites = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.userId;
+    
+    if (!userId) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Authentication required'
+      });
+    }
+
+    const user = await User.findById(userId).select('favoriteArtworks');
+    if (!user) {
+      return res.status(404).json({
+        error: 'User not found',
+        message: 'User account not found'
+      });
+    }
+
+    res.status(200).json({
+      favorites: user.favoriteArtworks,
+      total: user.favoriteArtworks.length
+    });
+
+  } catch (err) {
+    next(err);
+  }
 };
 
-export const addToFavorites = async (req: Request, res: Response) => {
-  res.status(501).json({ error: 'Not implemented', message: 'Add to favorites not yet implemented' });
+// Add artwork to user's favorites
+export const addToFavorites = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.userId;
+    const { artworkData } = req.body;
+    
+    if (!userId) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Authentication required'
+      });
+    }
+
+    // Validate artwork data
+    if (!artworkData || !artworkData.artworkId || !artworkData.title) {
+      return res.status(400).json({
+        error: 'Invalid artwork data',
+        message: 'Artwork ID and title are required'
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        error: 'User not found',
+        message: 'User account not found'
+      });
+    }
+
+    // Check if artwork is already in favorites
+    const alreadyFavorited = user.favoriteArtworks.some(
+      (artwork: any) => artwork.artworkId === artworkData.artworkId
+    );
+
+    if (alreadyFavorited) {
+      return res.status(409).json({
+        error: 'Already favorited',
+        message: 'This artwork is already in your favorites'
+      });
+    }
+
+    // Add to favorites
+    await user.addToFavorites({
+      ...artworkData,
+      addedAt: new Date()
+    });
+
+    res.status(201).json({
+      message: 'Artwork added to favorites successfully',
+      artwork: artworkData
+    });
+
+  } catch (err) {
+    if (err instanceof Error && err.message === 'Artwork already in favorites') {
+      return res.status(409).json({
+        error: 'Already favorited',
+        message: 'This artwork is already in your favorites'
+      });
+    }
+    next(err);
+  }
 };
 
-export const removeFromFavorites = async (req: Request, res: Response) => {
-  res.status(501).json({ error: 'Not implemented', message: 'Remove from favorites not yet implemented' });
+// Remove artwork from user's favorites
+export const removeFromFavorites = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.userId;
+    const { artwork_id } = req.params;
+    
+    if (!userId) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Authentication required'
+      });
+    }
+
+    if (!artwork_id) {
+      return res.status(400).json({
+        error: 'Missing artwork ID',
+        message: 'Artwork ID is required'
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        error: 'User not found',
+        message: 'User account not found'
+      });
+    }
+
+    // Check if artwork exists in favorites
+    const artworkExists = user.favoriteArtworks.some(
+      (artwork: any) => artwork.artworkId === artwork_id
+    );
+
+    if (!artworkExists) {
+      return res.status(404).json({
+        error: 'Artwork not found',
+        message: 'This artwork is not in your favorites'
+      });
+    }
+
+    // Remove from favorites
+    await user.removeFromFavorites(artwork_id);
+
+    res.status(200).json({
+      message: 'Artwork removed from favorites successfully'
+    });
+
+  } catch (err) {
+    next(err);
+  }
 };
 
-export const searchFavorites = async (req: Request, res: Response) => {
-  res.status(501).json({ error: 'Not implemented', message: 'Search favorites not yet implemented' });
+// Search within user's favorite artworks
+export const searchFavorites = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.user?.userId;
+    const { q, artist, medium, department, source } = req.query;
+    
+    if (!userId) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Authentication required'
+      });
+    }
+
+    const user = await User.findById(userId).select('favoriteArtworks');
+    if (!user) {
+      return res.status(404).json({
+        error: 'User not found',
+        message: 'User account not found'
+      });
+    }
+
+    let filteredFavorites = user.favoriteArtworks;
+
+    // Apply search filters
+    if (q) {
+      const searchTerm = (q as string).toLowerCase();
+      filteredFavorites = filteredFavorites.filter((artwork: any) =>
+        artwork.title?.toLowerCase().includes(searchTerm) ||
+        artwork.artist?.toLowerCase().includes(searchTerm) ||
+        artwork.description?.toLowerCase().includes(searchTerm) ||
+        artwork.tags?.some((tag: string) => tag.toLowerCase().includes(searchTerm))
+      );
+    }
+
+    if (artist) {
+      const artistTerm = (artist as string).toLowerCase();
+      filteredFavorites = filteredFavorites.filter((artwork: any) =>
+        artwork.artist?.toLowerCase().includes(artistTerm)
+      );
+    }
+
+    if (medium) {
+      const mediumTerm = (medium as string).toLowerCase();
+      filteredFavorites = filteredFavorites.filter((artwork: any) =>
+        artwork.medium?.toLowerCase().includes(mediumTerm)
+      );
+    }
+
+    if (department) {
+      const departmentTerm = (department as string).toLowerCase();
+      filteredFavorites = filteredFavorites.filter((artwork: any) =>
+        artwork.department?.toLowerCase().includes(departmentTerm)
+      );
+    }
+
+    if (source) {
+      filteredFavorites = filteredFavorites.filter((artwork: any) =>
+        artwork.museumSource === source
+      );
+    }
+
+    res.status(200).json({
+      favorites: filteredFavorites,
+      total: filteredFavorites.length,
+      totalFavorites: user.favoriteArtworks.length,
+      query: { q, artist, medium, department, source }
+    });
+
+  } catch (err) {
+    next(err);
+  }
 };

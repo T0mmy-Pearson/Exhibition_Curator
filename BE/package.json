@@ -5,14 +5,23 @@
   "main": "dist/server.js",
   "scripts": {
     "start": "node dist/server.js",
+    "start:prod": "NODE_ENV=production node dist/server.js",
+    "start:dev": "NODE_ENV=development node dist/server.js",
     "dev": "nodemon --exec ts-node src/server.ts",
     "build": "tsc",
+    "build:prod": "NODE_ENV=production tsc",
+    "deploy": "npm run build:prod && npm run start:prod",
     "test": "jest",
     "test:watch": "jest --watch",
     "seed": "ts-node src/db/seeds/run-seed.ts",
+    "seed:prod": "NODE_ENV=production ts-node src/db/seeds/run-seed.ts",
+    "seed:production": "NODE_ENV=production ts-node src/db/seeds/production-seed.ts",
     "setup-test": "./setup-test.sh",
     "setup-db": "echo 'MongoDB setup not required - using cloud/local MongoDB instance'",
-    "test-fitzwilliam": "node test-fitzwilliam-auth.js"
+    "test-fitzwilliam": "node test-fitzwilliam-auth.js",
+    "test-auth": "node test-auth-api.js",
+    "test-artworks": "node test-artwork-api.js",
+    "test-met": "node test-met-api.js"
   },
   "keywords": [
     "api",
@@ -34,6 +43,7 @@
     "express-rate-limit": "^6.10.0",
     "helmet": "^7.0.0",
     "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.20.0",
     "mongoose": "^7.5.0"
   },
   "devDependencies": {
