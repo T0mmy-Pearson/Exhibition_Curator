@@ -10,7 +10,7 @@ interface ArtworkSearchProps {
 
 export default function ArtworkSearch({ 
   onSearch, 
-  initialSearchTerm = 'painting',
+  initialSearchTerm = 'van gogh',
   initialSource = 'all'
 }: ArtworkSearchProps) {
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);

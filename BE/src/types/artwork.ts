@@ -90,8 +90,8 @@ export interface MetArtwork {
 
 // Standardized artwork interface for our application
 export interface StandardizedArtwork {
-  id: string; // Format: "met:{objectID}" or "rijks:{objectNumber}"
-  source: 'met' | 'rijks' | 'fitzwilliam';
+  id: string; // Format: "met:{objectID}" or "rijks:{objectNumber}" or "va:{systemNumber}"
+  source: 'met' | 'rijks' | 'fitzwilliam' | 'va';
   title: string;
   artist: string;
   artistBio?: string;
@@ -128,6 +128,9 @@ export interface StandardizedArtwork {
     type?: string;
     value?: string;
   }>;
+  // V&A Museum specific
+  systemNumber?: string;
+  accessionYear?: number;
 }
 
 // Fitzwilliam Museum API interfaces
@@ -258,4 +261,137 @@ export interface FitzwilliamArtwork {
   source?: {
     summary_title?: string;
   };
+}
+
+// V&A Museum API interfaces
+export interface VASearchResponse {
+  info: {
+    record_count: number;
+    record_count_exact: boolean;
+    parameters: Record<string, any>;
+    page: number;
+    pages: number;
+    page_size: number;
+  };
+  records: VAArtwork[];
+}
+
+export interface VAArtwork {
+  systemNumber: string;
+  accessionNumber?: string;
+  accessionYear?: number;
+  objectType?: string;
+  _primaryTitle?: string;
+  _primaryDate?: string;
+  _primaryPlace?: string;
+  _primaryImageId?: string;
+  _primaryMaker?: {
+    name?: string;
+    association?: string;
+  };
+  titles?: Array<{
+    title: string;
+    type?: string;
+  }>;
+  artistMakerPerson?: Array<{
+    name?: {
+      text: string;
+      id?: string;
+    };
+    association?: {
+      text: string;
+      id?: string;
+    };
+    note?: string;
+  }>;
+  artistMakerOrganisations?: Array<{
+    name?: {
+      text: string;
+      id?: string;
+    };
+    association?: {
+      text: string;
+      id?: string;
+    };
+    note?: string;
+  }>;
+  artistMakerPeople?: Array<{
+    name?: {
+      text: string;
+      id?: string;
+    };
+  }>;
+  productionDates?: Array<{
+    date?: {
+      text: string;
+      earliest?: string;
+      latest?: string;
+    };
+    association?: {
+      text: string;
+      id?: string;
+    };
+    note?: string;
+  }>;
+  materials?: Array<{
+    text: string;
+    id?: string;
+  }>;
+  techniques?: Array<{
+    text: string;
+    id?: string;
+  }>;
+  materialsAndTechniques?: string;
+  placesOfOrigin?: Array<{
+    place?: {
+      text: string;
+      id?: string;
+    };
+    association?: {
+      text: string;
+      id?: string;
+    };
+    note?: string;
+  }>;
+  contentPlaces?: Array<{
+    text: string;
+    id?: string;
+  }>;
+  associatedPlaces?: Array<{
+    text: string;
+    id?: string;
+  }>;
+  contentPerson?: Array<{
+    text: string;
+    id?: string;
+  }>;
+  associatedPerson?: Array<{
+    text: string;
+    id?: string;
+  }>;
+  dimensionsSummary?: string;
+  physicalDescription?: string;
+  briefDescription?: string;
+  galleryLocations?: Array<{
+    current?: {
+      text: string;
+      id?: string;
+    };
+  }>;
+  _images?: Array<{
+    id: string;
+    type: string;
+  }>;
+  categoryCollections?: Array<{
+    text: string;
+    id?: string;
+  }>;
+  styles?: Array<{
+    text: string;
+    id?: string;
+  }>;
+  partTypes?: Array<Array<{
+    text: string;
+    id?: string;
+  }>>;
 }

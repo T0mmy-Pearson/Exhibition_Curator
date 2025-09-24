@@ -83,7 +83,7 @@ export default function ArtworksPage() {
           key={key}
           searchTerm={searchTerm}
           source={source as 'all' | 'met' | 'rijks' | 'fitzwilliam'}
-          limit={20}
+          limit={100}
         />
 
         {/* Authentication Modal */}

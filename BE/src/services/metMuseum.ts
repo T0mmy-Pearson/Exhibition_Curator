@@ -151,6 +151,8 @@ export class MetMuseumService {
     departmentId?: number;
     hasImages?: boolean;
     isHighlight?: boolean;
+    title?: boolean;
+    artistOrCulture?: boolean;
     limit?: number;
   }): Promise<StandardizedArtwork[]> {
     try {

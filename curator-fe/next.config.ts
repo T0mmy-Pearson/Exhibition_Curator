@@ -32,6 +32,12 @@ const nextConfig: NextConfig = {
         hostname: 'media.rijksmuseum.nl',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'framemark.vam.ac.uk',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

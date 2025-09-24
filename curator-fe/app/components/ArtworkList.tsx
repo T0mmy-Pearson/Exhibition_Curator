@@ -15,7 +15,7 @@ interface ArtworkListProps {
 export default function ArtworkList({ 
   searchTerm = 'painting', 
   source = 'all', 
-  limit = 20 
+  limit = 100 
 }: ArtworkListProps) {
   const [artworks, setArtworks] = useState<StandardizedArtwork[]>([]);
   const [loading, setLoading] = useState(true);
@@ -34,19 +34,39 @@ export default function ArtworkList({
         hasImages: 'true' // Only fetch artworks with images
       });
 
-      // TODO: Replace with your actual backend URL
-      const response = await fetch(`http://localhost:9090/api/artworks/search?${params}`);
+      // Add timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+      console.log('Fetching artworks with params:', params.toString());
       
+      const response = await fetch(`http://localhost:9090/api/artworks/search?${params}`, {
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('Received data:', data);
       setArtworks(data.artworks || []);
     } catch (err) {
       console.error('Error fetching artworks:', err);
-      setError('Failed to load artworks. Please try again.');
+      if (err instanceof Error) {
+        if (err.name === 'AbortError') {
+          setError('Request timed out. Try reducing your search scope or check your connection.');
+        } else {
+          setError(`Failed to load artworks: ${err.message}`);
+        }
+      } else {
+        setError('Failed to load artworks. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

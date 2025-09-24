@@ -12,15 +12,33 @@ export default function ArtworkCard({ artwork, onClick }: ArtworkCardProps) {
   
   // Get collection name from source
   const getCollectionName = (source: string) => {
-    switch (source) {
+    if (!source) return 'Unknown Collection';
+    
+    const normalizedSource = source.toLowerCase().trim();
+    
+    switch (normalizedSource) {
       case 'met':
+      case 'metropolitan':
+      case 'metmuseum':
         return 'Metropolitan Museum of Art';
       case 'rijks':
+      case 'rijksmuseum':
         return 'Rijksmuseum';
       case 'fitzwilliam':
+      case 'fitz':
+      case 'fitzwilliam museum':
         return 'Fitzwilliam Museum';
+      case 'va':
+      case 'v&a':
+      case 'vam':
+      case 'victoria':
+      case 'victoria and albert':
+      case 'victoria & albert':
+        return 'Victoria & Albert Museum';
       default:
-        return 'Unknown Collection';
+        // For debugging - show the actual source value
+        console.log('Unknown source value:', source);
+        return `${source} Collection`;
     }
   };
 
