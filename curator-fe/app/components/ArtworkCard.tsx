@@ -24,10 +24,7 @@ export default function ArtworkCard({ artwork, onClick }: ArtworkCardProps) {
       case 'rijks':
       case 'rijksmuseum':
         return 'Rijksmuseum';
-      case 'fitzwilliam':
-      case 'fitz':
-      case 'fitzwilliam museum':
-        return 'Fitzwilliam Museum';
+
       case 'va':
       case 'v&a':
       case 'vam':

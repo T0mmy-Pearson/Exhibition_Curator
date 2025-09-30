@@ -9,18 +9,7 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-      {
-        protocol: 'https',
-        hostname: 'api.fitz.ms',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'www.fitzmuseum.cam.ac.uk',
-        port: '',
-        pathname: '/**',
-      },
+
       {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',

@@ -1,7 +1,7 @@
 // Standardized artwork interface matching the backend
 export interface StandardizedArtwork {
-  id: string; // Format: "met:{objectID}" or "rijks:{objectNumber}" or "fitzwilliam:{priref}"
-  source: 'met' | 'rijks' | 'fitzwilliam';
+  id: string; // Format: "met:{objectID}" or "rijks:{objectNumber}" or "va:{systemNumber}"
+  source: 'met' | 'rijks' | 'va';
   title: string;
   artist: string;
   artistBio?: string;
@@ -30,14 +30,9 @@ export interface StandardizedArtwork {
     width: number;
     height: number;
   };
-  // Fitzwilliam Museum specific
-  priref?: string;
-  uuid?: string;
-  identifier?: Array<{
-    accession_number?: string;
-    type?: string;
-    value?: string;
-  }>;
+  // V&A Museum specific
+  systemNumber?: string;
+  accessionYear?: number;
 }
 
 // API Response type for artwork search

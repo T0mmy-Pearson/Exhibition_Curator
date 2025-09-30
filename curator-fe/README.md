@@ -10,7 +10,7 @@ This frontend application displays artworks from external museum APIs in a respo
   - High-quality images from museum collections
   - Artwork title and artist name
   - Creation date and medium information
-  - Museum collection badge (Met Museum, Fitzwilliam, etc.)
+  - Museum collection badge (Met Museum, V&A, etc.)
   - Highlight indicators for featured pieces
   - Department/category information
 
@@ -19,7 +19,7 @@ This frontend application displays artworks from external museum APIs in a respo
 - **Museum Filtering**: Filter results by specific museums:
   - All Museums (combined results)
   - Metropolitan Museum of Art
-  - Fitzwilliam Museum
+  - Victoria & Albert Museum
   - Rijksmuseum (future)
 - **Quick Search Tags**: Pre-defined search terms for common artwork types
 
@@ -55,7 +55,7 @@ app/components/
 The frontend connects to the backend API at `http://localhost:9090/api/artworks/search` with the following parameters:
 
 - `q`: Search query string
-- `source`: Museum source ('all', 'met', 'fitzwilliam', 'rijks')
+- `source`: Museum source ('all', 'met', 'va', 'rijks')
 - `limit`: Number of results to fetch
 - `hasImages`: Filter for artworks with images only
 
@@ -63,8 +63,7 @@ The frontend connects to the backend API at `http://localhost:9090/api/artworks/
 
 Configured Next.js Image component to load images from:
 - `images.metmuseum.org` - Metropolitan Museum of Art
-- `api.fitz.ms` - Fitzwilliam Museum
-- `www.fitzmuseum.cam.ac.uk` - Fitzwilliam Museum
+- `framemark.vam.ac.uk` - Victoria & Albert Museum
 - `media.rijksmuseum.nl` - Rijksmuseum
 
 ## Getting Started

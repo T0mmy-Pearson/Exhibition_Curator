@@ -53,7 +53,7 @@ export default function ArtworkSearch({
             >
               <option value="all">All Museums</option>
               <option value="met">Metropolitan Museum</option>
-              <option value="fitzwilliam">Fitzwilliam Museum</option>
+              <option value="va">V&A Museum</option>
               <option value="rijks">Rijksmuseum</option>
             </select>
           </div>

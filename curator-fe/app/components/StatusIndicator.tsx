@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { API_ENDPOINTS } from '../config/api';
 
 export default function StatusIndicator() {
   const [isBackendConnected, setIsBackendConnected] = useState<boolean | null>(null);
@@ -8,7 +9,7 @@ export default function StatusIndicator() {
   useEffect(() => {
     const checkBackendStatus = async () => {
       try {
-        const response = await fetch('http://localhost:9090/api/artworks/search?q=test&limit=1');
+        const response = await fetch(API_ENDPOINTS.HEALTH);
         setIsBackendConnected(response.ok);
       } catch (error) {
         setIsBackendConnected(false);

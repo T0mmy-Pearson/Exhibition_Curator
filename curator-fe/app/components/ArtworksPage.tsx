@@ -82,7 +82,7 @@ export default function ArtworksPage() {
         <ArtworkList 
           key={key}
           searchTerm={searchTerm}
-          source={source as 'all' | 'met' | 'rijks' | 'fitzwilliam'}
+          source={source as 'all' | 'met' | 'rijks' | 'va'}
           limit={100}
         />
 

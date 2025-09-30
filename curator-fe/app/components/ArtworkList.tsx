@@ -5,10 +5,11 @@ import ArtworkCard from './ArtworkCard';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorDisplay from './ErrorDisplay';
 import { StandardizedArtwork } from '../types/artwork';
+import { API_ENDPOINTS, buildApiUrl, apiRequest } from '../config/api';
 
 interface ArtworkListProps {
   searchTerm?: string;
-  source?: 'all' | 'met' | 'rijks' | 'fitzwilliam';
+  source?: 'all' | 'met' | 'rijks' | 'va';
   limit?: number;
 }
 
@@ -26,34 +27,19 @@ export default function ArtworkList({
       setLoading(true);
       setError(null);
 
-      // Construct query parameters
-      const params = new URLSearchParams({
+      // Build API URL with parameters
+      const apiUrl = buildApiUrl(API_ENDPOINTS.SEARCH_ARTWORKS, {
         q: searchTerm,
         source: source,
-        limit: limit.toString(),
+        limit: limit,
         hasImages: 'true' // Only fetch artworks with images
       });
 
-      // Add timeout to prevent hanging
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-
-      console.log('Fetching artworks with params:', params.toString());
+      console.log('Fetching artworks from:', apiUrl);
       
-      const response = await fetch(`http://localhost:9090/api/artworks/search?${params}`, {
-        signal: controller.signal,
-        headers: {
-          'Accept': 'application/json',
-        },
-      });
+      // Use centralized API request function
+      const data = await apiRequest(apiUrl);
       
-      clearTimeout(timeoutId);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
       console.log('Received data:', data);
       setArtworks(data.artworks || []);
     } catch (err) {
