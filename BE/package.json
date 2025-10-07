@@ -18,7 +18,7 @@
     "seed:production": "NODE_ENV=production ts-node src/db/seeds/production-seed.ts",
     "setup-test": "./setup-test.sh",
     "setup-db": "echo 'MongoDB setup not required - using cloud/local MongoDB instance'",
-    "test-fitzwilliam": "node test-fitzwilliam-auth.js",
+
     "test-auth": "node test-auth-api.js",
     "test-artworks": "node test-artwork-api.js",
     "test-met": "node test-met-api.js"

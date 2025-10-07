@@ -1,18 +1,18 @@
 import { Request, Response } from 'express';
 import { MetMuseumService } from '../services/metMuseum';
-import { FitzwilliamMuseumService } from '../services/fitzwilliamMuseum';
 import { VAMuseumService } from '../services/vaMuseum';
+import { RijksmuseumService } from '../services/rijksmuseum';
 import { StandardizedArtwork } from '../types/artwork';
 
 const metService = MetMuseumService.getInstance();
-const fitzwilliamService = FitzwilliamMuseumService.getInstance();
 const vaService = VAMuseumService.getInstance();
+const rijksService = RijksmuseumService.getInstance();
 
 export const searchArtworks = async (req: Request, res: Response) => {
   try {
     const { 
       q, 
-      source = 'all', // 'met', 'rijks', 'fitzwilliam', 'va', or 'all'
+      source = 'all', // 'met', 'va', or 'all'
       department, 
       hasImages = 'true',
       isHighlight,
@@ -25,37 +25,79 @@ export const searchArtworks = async (req: Request, res: Response) => {
     // Search Met Museum if source is 'met' or 'all'
     if (source === 'met' || source === 'all') {
       try {
-        const metArtworks = await metService.searchStandardizedArtworks({
+        // Add timeout wrapper for Met Museum search
+        const metSearchPromise = metService.searchStandardizedArtworks({
           q: q as string,
           departmentId: department ? parseInt(department as string) : undefined,
           hasImages: hasImages === 'true',
           isHighlight: isHighlight === 'true' ? true : undefined,
           limit: parsedLimit
         });
+        
+        const timeoutPromise = new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Met Museum search timed out')), 25000) // 25 second timeout
+        );
+        
+        const metArtworks = await Promise.race([metSearchPromise, timeoutPromise]);
         allArtworks.push(...metArtworks);
-      } catch (error) {
-        console.error('Met Museum search failed:', error);
-        // Continue with other sources
+        console.log(`Met Museum: Successfully retrieved ${metArtworks.length} artworks`);
+      } catch (error: any) {
+        console.error('Met Museum search failed:', error.message);
+        
+        // If only searching Met Museum, return appropriate error
+        if (source === 'met') {
+          if (error.message.includes('timed out')) {
+            return res.status(408).json({
+              error: 'Met Museum search is taking too long. Try a more specific search term or search all museums.',
+              artworks: [],
+              total: 0,
+              source: 'met',
+              suggestion: 'Try searching "All Museums" to include faster V&A Museum results'
+            });
+          } else if (error.message.includes('temporarily unavailable') || error.message.includes('rate limit')) {
+            return res.status(503).json({
+              error: 'Met Museum service temporarily unavailable. Please try again in a few minutes or search all museums.',
+              artworks: [],
+              total: 0,
+              source: 'met',
+              suggestion: 'Try searching "All Museums" to include V&A Museum results'
+            });
+          } else {
+            return res.status(502).json({
+              error: 'Met Museum service currently unavailable. Please try again later or search all museums.',
+              artworks: [],
+              total: 0,
+              source: 'met',
+              suggestion: 'Try searching "All Museums" to include V&A Museum results'
+            });
+          }
+        }
+        // Continue with other sources if searching 'all'
       }
     }
 
-    // TODO: Add Rijksmuseum search when source is 'rijks' or 'all'
+    // Search Rijksmuseum if source is 'rijks' or 'all'
     if (source === 'rijks' || source === 'all') {
-      // Rijksmuseum integration to be implemented
-    }
-
-    // Search Fitzwilliam Museum if source is 'fitzwilliam' or 'all'
-    if (source === 'fitzwilliam' || source === 'all') {
       try {
-        const fitzwilliamResponse = await fitzwilliamService.searchStandardizedArtworks({
-          query: q as string,
-          department: department as string,
-          size: parsedLimit
+        const rijksArtworks = await rijksService.searchStandardizedArtworks({
+          q: q as string,
+          imageAvailable: hasImages === 'true',
+          limit: parsedLimit
         });
-        allArtworks.push(...fitzwilliamResponse.artworks);
-      } catch (error) {
-        console.error('Fitzwilliam Museum search failed:', error);
-        // Continue with other sources
+        allArtworks.push(...rijksArtworks);
+        console.log(`Found ${rijksArtworks.length} artworks from Rijksmuseum`);
+      } catch (error: any) {
+        console.error('Error searching Rijksmuseum:', error.message);
+        if (source === 'rijks') {
+          return res.status(500).json({
+            error: 'Museum search failed',
+            message: 'Failed to search Rijksmuseum. Please try again later.',
+            details: error.message,
+            source: 'rijks',
+            suggestion: 'Try searching "All Museums" to include other museum results'
+          });
+        }
+        // Continue with other sources if searching 'all'
       }
     }
 
@@ -118,13 +160,13 @@ export const searchByTitleOrArtist = async (req: Request, res: Response) => {
     const parsedLimit = limit ? Math.min(parseInt(limit as string), 200) : 200;
     let allArtworks: StandardizedArtwork[] = [];
 
-    // Search Met Museum
+    // Search Met 
     if (source === 'met' || source === 'all') {
       try {
         let metArtworks: StandardizedArtwork[] = [];
         
         if (searchType === 'title' || searchType === 'both') {
-          // Met Museum uses 'title=true' parameter for title searches
+          // Met 'title=true' parameter for title searches
           const titleResults = await metService.searchStandardizedArtworks({
             q: query as string,
             title: true,
@@ -135,7 +177,7 @@ export const searchByTitleOrArtist = async (req: Request, res: Response) => {
         }
 
         if (searchType === 'artist' || searchType === 'both') {
-          // Met Museum uses 'artistOrCulture=true' for artist searches
+          // Met 'artistOrCulture=true' for artist searches
           const artistResults = await metService.searchStandardizedArtworks({
             q: query as string,
             artistOrCulture: true,
@@ -153,31 +195,6 @@ export const searchByTitleOrArtist = async (req: Request, res: Response) => {
         allArtworks.push(...uniqueMetArtworks);
       } catch (error) {
         console.error('Met Museum title/artist search failed:', error);
-      }
-    }
-
-    // Search Fitzwilliam Museum
-    if (source === 'fitzwilliam' || source === 'all') {
-      try {
-        // Fitzwilliam searches are generally broad, we'll filter results on our end
-        const fitzwilliamResponse = await fitzwilliamService.searchStandardizedArtworks({
-          query: query as string,
-          size: parsedLimit
-        });
-        
-        // Filter results based on searchType
-        const filteredFitzwilliam = fitzwilliamResponse.artworks.filter(artwork => {
-          const titleMatch = artwork.title && artwork.title.toLowerCase().includes((query as string).toLowerCase());
-          const artistMatch = artwork.artist && artwork.artist.toLowerCase().includes((query as string).toLowerCase());
-          
-          if (searchType === 'title') return titleMatch;
-          if (searchType === 'artist') return artistMatch;
-          return titleMatch || artistMatch; // both
-        });
-        
-        allArtworks.push(...filteredFitzwilliam);
-      } catch (error) {
-        console.error('Fitzwilliam Museum title/artist search failed:', error);
       }
     }
 
@@ -241,13 +258,13 @@ export const getArtworkById = async (req: Request, res: Response) => {
   try {
     const { artwork_id } = req.params;
     
-    // Parse the artwork ID format: "met:12345", "rijks:SK-A-1234", "fitzwilliam:uuid", or "va:systemNumber"
+    // Parse the artwork ID format: "met:12345", "rijks:SK-A-1234", or "va:systemNumber"
     const [source, objectId] = artwork_id.split(':');
     
     if (!source || !objectId) {
       return res.status(400).json({
         error: 'Invalid artwork ID format',
-        message: 'Artwork ID should be in format "source:objectId" (e.g., "met:12345", "fitzwilliam:uuid", "va:O123456")'
+        message: 'Artwork ID should be in format "source:objectId" (e.g., "met:12345", "va:O123456")'
       });
     }
 
@@ -260,16 +277,8 @@ export const getArtworkById = async (req: Request, res: Response) => {
         break;
       
       case 'rijks':
-        // TODO: Implement Rijksmuseum artwork retrieval
-        return res.status(501).json({
-          error: 'Not implemented',
-          message: 'Rijksmuseum artwork retrieval not yet implemented'
-        });
-      
-      case 'fitzwilliam':
-        const fitzwilliamArtwork = await fitzwilliamService.getArtworkByUuid(objectId);
-        artwork = fitzwilliamService.convertToStandardized(fitzwilliamArtwork);
-        break;
+        const rijksArtwork = await rijksService.getArtworkById(objectId);
+        artwork = await rijksService.standardizeArtwork(rijksArtwork);
       
       case 'va':
         const vaArtwork = await vaService.getArtworkById(objectId);
@@ -279,7 +288,7 @@ export const getArtworkById = async (req: Request, res: Response) => {
       default:
         return res.status(400).json({
           error: 'Invalid source',
-          message: 'Source must be "met", "rijks", "fitzwilliam", or "va"'
+          message: 'Source must be "met", "rijks", or "va"'
         });
     }
 
@@ -320,9 +329,14 @@ export const getRandomArtworks = async (req: Request, res: Response) => {
       }
     }
 
-    // TODO: Add Rijksmuseum random artworks
+    // Get random artworks from Rijksmuseum
     if (source === 'rijks' || source === 'all') {
-      // Rijksmuseum random artworks to be implemented
+      try {
+        const rijksArtworks = await rijksService.getRandomArtworks(parsedCount);
+        allArtworks.push(...rijksArtworks);
+      } catch (error) {
+        console.error('Rijksmuseum random artworks failed:', error);
+      }
     }
 
     // Get random artworks from V&A Museum
@@ -460,115 +474,69 @@ export const getMetArtwork = async (req: Request, res: Response) => {
   }
 };
 
-// Rijksmuseum specific endpoints (placeholders)
+// Rijksmuseum specific endpoints
 export const searchRijksmuseum = async (req: Request, res: Response) => {
-  res.status(501).json({
-    error: 'Not implemented',
-    message: 'Rijksmuseum search not yet implemented'
-  });
-};
-
-export const getRijksArtwork = async (req: Request, res: Response) => {
-  res.status(501).json({
-    error: 'Not implemented', 
-    message: 'Rijksmuseum artwork retrieval not yet implemented'
-  });
-};
-
-// Fitzwilliam Museum specific endpoints
-export const searchFitzwilliam = async (req: Request, res: Response) => {
   try {
     const { 
-      query, 
-      page = '1', 
-      size,
-      department,
-      maker,
-      materials,
-      techniques,
-      categories,
-      dateFrom,
-      dateTo 
+      q, 
+      creator, 
+      type, 
+      technique, 
+      material, 
+      hasImages = 'true',
+      limit = '20' 
     } = req.query;
 
-    const pageNum = parseInt(page as string) || 1;
-    const sizeNum = size ? Math.min(parseInt(size as string), 200) : 200;
+    const parsedLimit = Math.min(parseInt(limit as string) || 20, 100);
 
-    const result = await fitzwilliamService.searchStandardizedArtworks({
-      query: query as string,
-      page: pageNum,
-      size: sizeNum,
-      department: department as string,
-      maker: maker as string,
-      dateFrom: dateFrom as string,
-      dateTo: dateTo as string
+    const artworks = await rijksService.searchStandardizedArtworks({
+      q: q as string,
+      creator: creator as string,
+      type: type as string,
+      imageAvailable: hasImages === 'true',
+      limit: parsedLimit
     });
 
     res.json({
-      artworks: result.artworks,
-      pagination: {
-        page: result.page,
-        size: sizeNum,
-        total: result.total,
-        totalPages: result.totalPages
-      },
-      query,
-      source: 'fitzwilliam'
+      artworks,
+      count: artworks.length,
+      source: 'rijks',
+      museum: 'Rijksmuseum'
     });
-
-  } catch (error) {
-    console.error('Error searching Fitzwilliam Museum:', error);
-    
-    if (error instanceof Error && error.message.includes('authentication failed')) {
-      return res.status(401).json({
-        error: 'Authentication failed',
-        message: 'Fitzwilliam Museum API authentication failed. Please check your credentials.'
-      });
-    }
-
+  } catch (error: any) {
+    console.error('Error searching Rijksmuseum:', error);
     res.status(500).json({
-      error: 'Internal server error',
-      message: 'Failed to search Fitzwilliam Museum'
+      error: 'Search failed',
+      message: 'Failed to search Rijksmuseum artworks',
+      details: error.message
     });
   }
 };
 
-export const getFitzwilliamArtwork = async (req: Request, res: Response) => {
+export const getRijksArtwork = async (req: Request, res: Response) => {
   try {
-    const { uuid } = req.params;
-
-    if (!uuid) {
-      return res.status(400).json({
-        error: 'Invalid UUID',
-        message: 'UUID is required'
-      });
-    }
-
-    const fitzwilliamArtwork = await fitzwilliamService.getArtworkByUuid(uuid);
-    const standardized = fitzwilliamService.convertToStandardized(fitzwilliamArtwork);
-
-    res.json(standardized);
-
-  } catch (error) {
-    console.error('Error fetching Fitzwilliam Museum artwork:', error);
+    const { object_id } = req.params;
     
-    if (error instanceof Error && error.message.includes('authentication failed')) {
-      return res.status(401).json({
-        error: 'Authentication failed',
-        message: 'Fitzwilliam Museum API authentication failed. Please check your credentials.'
-      });
-    }
+    const rijksArtwork = await rijksService.getArtworkById(object_id);
+    const standardized = rijksService.standardizeArtwork(rijksArtwork);
     
-    if (error instanceof Error && error.message.includes('Failed to fetch artwork')) {
+    res.json({
+      artwork: standardized,
+      source: 'rijks',
+      museum: 'Rijksmuseum'
+    });
+  } catch (error: any) {
+    console.error('Error fetching Rijksmuseum artwork:', error);
+    if (error.message.includes('404')) {
       return res.status(404).json({
         error: 'Artwork not found',
-        message: 'The requested artwork could not be found in Fitzwilliam Museum'
+        message: `Artwork with ID ${req.params.object_id} not found in Rijksmuseum`
       });
     }
-
     res.status(500).json({
-      error: 'Internal server error',
-      message: 'Failed to fetch Fitzwilliam Museum artwork'
+      error: 'Fetch failed',
+      message: 'Failed to fetch Rijksmuseum artwork',
+      details: error.message
     });
   }
 };
@@ -637,69 +605,6 @@ export const searchMetByTitleOrArtist = async (req: Request, res: Response) => {
     res.status(500).json({
       error: 'Internal server error',
       message: 'Failed to search Met Museum by title or artist'
-    });
-  }
-};
-
-export const searchFitzwilliamByTitleOrArtist = async (req: Request, res: Response) => {
-  try {
-    const { 
-      query, 
-      searchType = 'both',
-      page = '1',
-      size,
-      department,
-      dateFrom,
-      dateTo 
-    } = req.query;
-
-    if (!query) {
-      return res.status(400).json({
-        error: 'Query parameter is required'
-      });
-    }
-
-    const pageNum = parseInt(page as string) || 1;
-    const sizeNum = size ? Math.min(parseInt(size as string), 200) : 200;
-
-    // Fitzwilliam doesn't have specific title/artist parameters, so we search and filter
-    const result = await fitzwilliamService.searchStandardizedArtworks({
-      query: query as string,
-      page: pageNum,
-      size: sizeNum,
-      department: department as string,
-      dateFrom: dateFrom as string,
-      dateTo: dateTo as string
-    });
-
-    // Filter results based on searchType
-    const filteredArtworks = result.artworks.filter(artwork => {
-      const titleMatch = artwork.title && artwork.title.toLowerCase().includes((query as string).toLowerCase());
-      const artistMatch = artwork.artist && artwork.artist.toLowerCase().includes((query as string).toLowerCase());
-      
-      if (searchType === 'title') return titleMatch;
-      if (searchType === 'artist') return artistMatch;
-      return titleMatch || artistMatch; // both
-    });
-
-    res.json({
-      artworks: filteredArtworks,
-      pagination: {
-        page: result.page,
-        size: sizeNum,
-        total: filteredArtworks.length,
-        totalPages: Math.ceil(filteredArtworks.length / sizeNum)
-      },
-      query,
-      searchType,
-      source: 'fitzwilliam'
-    });
-
-  } catch (error) {
-    console.error('Error searching Fitzwilliam Museum by title/artist:', error);
-    res.status(500).json({
-      error: 'Internal server error',
-      message: 'Failed to search Fitzwilliam Museum by title or artist'
     });
   }
 };
@@ -810,6 +715,79 @@ export const getVAArtwork = async (req: Request, res: Response) => {
     res.status(500).json({
       error: 'Internal server error',
       message: 'Failed to fetch V&A Museum artwork'
+    });
+  }
+};
+
+export const searchRijksByTitleOrArtist = async (req: Request, res: Response) => {
+  try {
+    const { 
+      query, 
+      searchType = 'both',
+      hasImages = 'true',
+      type,
+      limit = '20' 
+    } = req.query;
+
+    if (!query) {
+      return res.status(400).json({
+        error: 'Query parameter is required'
+      });
+    }
+
+    const parsedLimit = Math.min(parseInt(limit as string), 100);
+    let allArtworks: StandardizedArtwork[] = [];
+
+    if (searchType === 'title' || searchType === 'both') {
+      try {
+        const titleResults = await rijksService.searchStandardizedArtworks({
+          q: query as string, // In Rijksmuseum, the main 'q' parameter searches titles
+          imageAvailable: hasImages === 'true',
+          type: type as string,
+          limit: Math.ceil(parsedLimit / (searchType === 'both' ? 2 : 1))
+        });
+        allArtworks.push(...titleResults);
+      } catch (error) {
+        console.error('Error searching Rijksmuseum by title:', error);
+      }
+    }
+
+    if (searchType === 'artist' || searchType === 'both') {
+      try {
+        const artistResults = await rijksService.searchStandardizedArtworks({
+          creator: query as string, // Use creator parameter for artist search
+          imageAvailable: hasImages === 'true',
+          type: type as string,
+          limit: Math.ceil(parsedLimit / (searchType === 'both' ? 2 : 1))
+        });
+        allArtworks.push(...artistResults);
+      } catch (error) {
+        console.error('Error searching Rijksmuseum by artist:', error);
+      }
+    }
+
+    // Remove duplicates based on artwork ID
+    const uniqueArtworks = allArtworks.filter((artwork, index, self) => 
+      index === self.findIndex(a => a.id === artwork.id)
+    );
+
+    // Limit results
+    const limitedArtworks = uniqueArtworks.slice(0, parsedLimit);
+
+    res.json({
+      artworks: limitedArtworks,
+      count: limitedArtworks.length,
+      source: 'rijks',
+      museum: 'Rijksmuseum',
+      searchType,
+      query: query as string
+    });
+
+  } catch (error) {
+    console.error('Error in Rijksmuseum title/artist search:', error);
+    res.status(500).json({
+      error: 'Internal server error', 
+      message: 'Failed to search Rijksmuseum by title or artist'
     });
   }
 };

@@ -1,7 +1,6 @@
 import axios from 'axios';
 import { VASearchResponse, VAArtwork, StandardizedArtwork } from '../types/artwork';
-
-const VA_BASE_URL = 'https://api.vam.ac.uk/v2';
+import { config } from '../config';
 
 export class VAMuseumService {
   private static instance: VAMuseumService;
@@ -36,7 +35,7 @@ export class VAMuseumService {
         response_format: 'json' 
       };
 
-      const response = await axios.get(`${VA_BASE_URL}/objects/search`, { 
+      const response = await axios.get(`${config.museum.vaApiUrl}/objects/search`, { 
         params: searchParams 
       });
       return response.data;
@@ -51,7 +50,7 @@ export class VAMuseumService {
    */
   async getArtworkById(systemNumber: string): Promise<VAArtwork> {
     try {
-      const response = await axios.get(`${VA_BASE_URL}/museumobject/${systemNumber}`);
+      const response = await axios.get(`${config.museum.vaApiUrl}/museumobject/${systemNumber}`);
       return response.data.record;
     } catch (error) {
       console.error(`Error fetching V&A Museum artwork ${systemNumber}:`, error);
@@ -233,8 +232,8 @@ export class VAMuseumService {
   }): Promise<any> {
     try {
       const endpoint = params.cluster_type 
-        ? `${VA_BASE_URL}/objects/clusters/${params.cluster_type}/search`
-        : `${VA_BASE_URL}/objects/clusters/search`;
+        ? `${config.museum.vaApiUrl}/objects/clusters/${params.cluster_type}/search`
+        : `${config.museum.vaApiUrl}/objects/clusters/search`;
       
       const response = await axios.get(endpoint, { params });
       return response.data;

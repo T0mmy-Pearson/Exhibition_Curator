@@ -8,11 +8,9 @@ import {
   searchRijksmuseum,
   getMetArtwork,
   getRijksArtwork,
-  searchFitzwilliam,
-  getFitzwilliamArtwork,
   searchByTitleOrArtist,
   searchMetByTitleOrArtist,
-  searchFitzwilliamByTitleOrArtist,
+  searchRijksByTitleOrArtist,
   searchVAMuseum,
   searchVAByTitleOrArtist,
   getVAArtwork
@@ -33,10 +31,8 @@ artworksRouter.get('/met/search', searchMetMuseum);
 artworksRouter.get('/met/search/title-artist', searchMetByTitleOrArtist);
 artworksRouter.get('/met/:object_id', getMetArtwork);
 artworksRouter.get('/rijks/search', searchRijksmuseum);
+artworksRouter.get('/rijks/search/title-artist', searchRijksByTitleOrArtist);
 artworksRouter.get('/rijks/:object_id', getRijksArtwork);
-artworksRouter.get('/fitzwilliam/search', searchFitzwilliam);
-artworksRouter.get('/fitzwilliam/search/title-artist', searchFitzwilliamByTitleOrArtist);
-artworksRouter.get('/fitzwilliam/:uuid', getFitzwilliamArtwork);
 artworksRouter.get('/va/search', searchVAMuseum);
 artworksRouter.get('/va/search/title-artist', searchVAByTitleOrArtist);
 artworksRouter.get('/va/:system_number', getVAArtwork);

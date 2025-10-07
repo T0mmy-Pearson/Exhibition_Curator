@@ -32,9 +32,7 @@ Exhibition_Curator/
 ### Planned Features
 - **Multiple Museum APIs**: Rijksmuseum, Tate, and other major museums
 - **Advanced Search**: Faceted search, autocomplete, similarity matching
-- **Social Features**: Share exhibitions, follow other curators
-- **Mobile App**: React Native mobile application
-- **Recommendation Engine**: AI-powered artwork recommendations
+- **Social Features**: Like and share exhibitions, follow other curators
 
 ## 🛠️ Technology Stack
 
@@ -44,7 +42,6 @@ Exhibition_Curator/
 - **Database**: PostgreSQL
 - **Authentication**: JWT tokens
 - **External APIs**: Metropolitan Museum of Art API
-- **Testing**: Jest (planned)
 
 ### Planned Frontend
 - **Web**: React with TypeScript
@@ -138,20 +135,14 @@ GET /api/artworks/departments
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
 - **Metropolitan Museum of Art** for providing an excellent public API
 - **Museum APIs** for making cultural heritage accessible to developers
-- **Open Source Community** for the amazing tools and libraries
 
 ## 📧 Contact
 
 Project Link: [https://github.com/T0mmy-Pearson/Exhibition_Curator](https://github.com/T0mmy-Pearson/Exhibition_Curator)
 
 ---
-
-**Start curating your virtual exhibitions today!** 🎨✨

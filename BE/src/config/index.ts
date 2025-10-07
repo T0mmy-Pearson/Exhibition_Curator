@@ -13,10 +13,8 @@ export interface AppConfig {
     metApiUrl: string;
     rijksApiKey: string;
     rijksApiUrl: string;
-    fitzwilliamApiUrl: string;
-    fitzwilliamApiKey: string;
-    fitzwilliamUsername: string;
-    fitzwilliamPassword: string;
+    rijksOldApiUrl: string;
+    vaApiUrl: string;
   };
 }
 
@@ -46,11 +44,9 @@ export const getConfig = (): AppConfig => {
     museum: {
       metApiUrl: process.env.MET_MUSEUM_API_URL || 'https://collectionapi.metmuseum.org/public/collection/v1',
       rijksApiKey: process.env.RIJKS_MUSEUM_API_KEY || '',
-      rijksApiUrl: process.env.RIJKS_MUSEUM_API_URL || 'https://www.rijksmuseum.nl/api/en/collection',
-      fitzwilliamApiUrl: process.env.FITZWILLIAM_MUSEUM_API_URL || 'https://data.fitzmuseum.cam.ac.uk/api/v1',
-      fitzwilliamApiKey: process.env.FITZWILLIAM_MUSEUM_API_KEY || '',
-      fitzwilliamUsername: process.env.FITZWILLIAM_USERNAME || '',
-      fitzwilliamPassword: process.env.FITZWILLIAM_PASSWORD || '',
+      rijksApiUrl: process.env.RIJKS_MUSEUM_API_URL || 'https://data.rijksmuseum.nl',
+      rijksOldApiUrl: process.env.RIJKS_MUSEUM_OLD_API_URL || 'https://www.rijksmuseum.nl/api/en/collection',
+      vaApiUrl: process.env.VA_MUSEUM_API_URL || 'https://api.vam.ac.uk/v2',
     },
   };
 };
