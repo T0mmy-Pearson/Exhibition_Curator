@@ -19,6 +19,8 @@ export const API_ENDPOINTS = {
   MET_TITLE_ARTIST: `${API_BASE_URL}/artworks/met/search/title-artist`,
   VA_SEARCH: `${API_BASE_URL}/artworks/va/search`,
   VA_TITLE_ARTIST: `${API_BASE_URL}/artworks/va/search/title-artist`,
+  RIJKS_SEARCH: `${API_BASE_URL}/artworks/rijks/search`,
+  RIJKS_TITLE_ARTIST: `${API_BASE_URL}/artworks/rijks/search/title-artist`,
 
   
   // Authentication endpoints
@@ -36,7 +38,7 @@ export const API_ENDPOINTS = {
 // API configuration
 export const API_CONFIG = {
   BASE_URL: API_BASE_URL,
-  TIMEOUT: 30000, // 30 seconds
+  TIMEOUT: 120000, // 2 minutes - increased for Rijksmuseum hybrid approach
   HEADERS: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',

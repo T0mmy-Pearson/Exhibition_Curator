@@ -71,8 +71,8 @@ export default function ArtworkSearch({
 
         {/* Quick search suggestions */}
         <div className="flex flex-wrap gap-2">
-          <span className="text-sm text-gray-500 dark:text-gray-400">Quick searches:</span>
-          {['painting', 'sculpture', 'portrait', 'landscape', 'ancient'].map((term) => (
+          <span className="text-sm text-gray-500 dark:text-gray-400">Try:</span>
+          {['leonardo', 'van gogh', 'picasso', 'monet', 'ancient egypt', 'renaissance'].map((term) => (
             <button
               key={term}
               type="button"
