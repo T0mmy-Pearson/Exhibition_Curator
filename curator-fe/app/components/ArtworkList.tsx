@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import ArtworkCard from './ArtworkCard';
+import ArtworkModal, { ArtworkDetails } from './ArtworkModal';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorDisplay from './ErrorDisplay';
 import { StandardizedArtwork } from '../types/artwork';
@@ -21,6 +22,8 @@ export default function ArtworkList({
   const [artworks, setArtworks] = useState<StandardizedArtwork[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedArtwork, setSelectedArtwork] = useState<ArtworkDetails | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchArtworks = useCallback(async () => {
     try {
@@ -38,7 +41,7 @@ export default function ArtworkList({
       console.log('Fetching artworks from:', apiUrl);
       
       // Use centralized API request function
-      const data = await apiRequest(apiUrl);
+      const data = await apiRequest(apiUrl) as any;
       
       console.log('Received data:', data);
       setArtworks(data.artworks || []);
@@ -57,6 +60,57 @@ export default function ArtworkList({
       setLoading(false);
     }
   }, [searchTerm, source, limit]);
+
+  // Handle artwork click
+  const handleArtworkClick = (artwork: StandardizedArtwork) => {
+    // Convert StandardizedArtwork to ArtworkDetails format
+    const artworkDetails: ArtworkDetails = {
+      objectID: artwork.objectID?.toString(),
+      artworkId: artwork.objectID?.toString(),
+      title: artwork.title,
+      artist: artwork.artist,
+      artistDisplayName: artwork.artist,
+      date: artwork.date,
+      objectDate: artwork.date,
+      medium: artwork.medium,
+      department: artwork.department,
+      culture: artwork.culture,
+      period: undefined,
+      dimensions: artwork.dimensions,
+      imageUrl: artwork.imageUrl,
+      primaryImage: artwork.imageUrl,
+      primaryImageSmall: artwork.smallImageUrl,
+      additionalImages: artwork.additionalImages,
+      objectURL: undefined,
+      tags: artwork.tags,
+      description: artwork.description,
+      museumSource: artwork.source,
+      isHighlight: artwork.isHighlight,
+      creditLine: artwork.creditLine,
+      classification: undefined,
+      accessionNumber: artwork.accessionNumber,
+      geographyType: undefined,
+      city: undefined,
+      state: undefined,
+      county: undefined,
+      country: undefined,
+      region: undefined,
+      subregion: undefined,
+      locale: undefined,
+      locus: undefined,
+      excavation: undefined,
+      river: undefined,
+      rightsAndReproduction: undefined
+    };
+    
+    setSelectedArtwork(artworkDetails);
+    setIsModalOpen(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedArtwork(null);
+  };
 
   useEffect(() => {
     fetchArtworks();
@@ -115,9 +169,22 @@ export default function ArtworkList({
       {/* Grid of artwork cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {artworks.map((artwork) => (
-          <ArtworkCard key={artwork.id} artwork={artwork} />
+          <ArtworkCard 
+            key={artwork.id} 
+            artwork={artwork} 
+            onClick={handleArtworkClick}
+          />
         ))}
       </div>
+
+      {/* Artwork Modal */}
+      {selectedArtwork && (
+        <ArtworkModal
+          artwork={selectedArtwork}
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+        />
+      )}
     </div>
   );
 }

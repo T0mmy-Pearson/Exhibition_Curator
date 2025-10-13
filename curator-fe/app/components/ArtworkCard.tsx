@@ -4,9 +4,10 @@ import { StandardizedArtwork } from '../types/artwork';
 interface ArtworkCardProps {
   artwork: StandardizedArtwork;
   onClick?: (artwork: StandardizedArtwork) => void;
+  showQuickInfo?: boolean;
 }
 
-export default function ArtworkCard({ artwork, onClick }: ArtworkCardProps) {
+export default function ArtworkCard({ artwork, onClick, showQuickInfo = true }: ArtworkCardProps) {
   // Get the appropriate image URL (prefer small image for list view)
   const imageUrl = artwork.smallImageUrl || artwork.imageUrl;
   
