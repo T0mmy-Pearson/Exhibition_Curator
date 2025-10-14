@@ -6,10 +6,13 @@ import ArtworkList from './ArtworkList';
 import StatusIndicator from './StatusIndicator';
 import UserProfile from './UserProfile';
 import AuthModal from './AuthModal';
+import LoginPromptModal from './LoginPromptModal';
 import { useAuth } from '../contexts/AuthContext';
+import { useLoginPrompt } from '../hooks/useLoginPrompt';
 
 export default function ArtworksPage() {
   const { user } = useAuth();
+  const loginPrompt = useLoginPrompt();
   const [searchTerm, setSearchTerm] = useState('painting');
   const [source, setSource] = useState('all');
   const [key, setKey] = useState(0); // Force re-render of ArtworkList
@@ -78,6 +81,34 @@ export default function ArtworksPage() {
           initialSource={source}
         />
 
+        {/* Quick Actions */}
+        <div className="mb-6 flex flex-wrap gap-3">
+          <button
+            onClick={() => loginPrompt.promptForViewFavorites(() => {
+              // Navigate to favorites page or show favorites
+              console.log('Navigating to favorites...');
+            })}
+            className="inline-flex items-center px-4 py-2 bg-pink-100 hover:bg-pink-200 dark:bg-pink-900 dark:hover:bg-pink-800 text-pink-800 dark:text-pink-200 rounded-lg text-sm font-medium transition-colors"
+          >
+            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+            </svg>
+            My Favorites
+          </button>
+          <button
+            onClick={() => loginPrompt.promptForExhibition(() => {
+              // Navigate to create exhibition page
+              console.log('Creating exhibition...');
+            })}
+            className="inline-flex items-center px-4 py-2 bg-purple-100 hover:bg-purple-200 dark:bg-purple-900 dark:hover:bg-purple-800 text-purple-800 dark:text-purple-200 rounded-lg text-sm font-medium transition-colors"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Create Exhibition
+          </button>
+        </div>
+
         {/* Artwork list */}
         <ArtworkList 
           key={key}
@@ -91,6 +122,15 @@ export default function ArtworksPage() {
           isOpen={showAuthModal}
           onClose={() => setShowAuthModal(false)}
           defaultTab={authModalTab}
+        />
+
+        {/* Login Prompt Modal for first-time visitors and auth-required actions */}
+        <LoginPromptModal
+          isOpen={loginPrompt.isOpen}
+          onClose={loginPrompt.hideLoginPrompt}
+          onLoginSuccess={loginPrompt.handleLoginSuccess}
+          trigger={loginPrompt.trigger}
+          artworkTitle={loginPrompt.artworkTitle}
         />
       </div>
     </div>

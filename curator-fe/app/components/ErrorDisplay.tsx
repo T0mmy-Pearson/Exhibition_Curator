@@ -1,9 +1,11 @@
 interface ErrorDisplayProps {
   message: string;
   onRetry?: () => void;
+  actionText?: string;
+  onAction?: () => void;
 }
 
-export default function ErrorDisplay({ message, onRetry }: ErrorDisplayProps) {
+export default function ErrorDisplay({ message, onRetry, actionText, onAction }: ErrorDisplayProps) {
   return (
     <div className="text-center py-12">
       <div className="text-red-600 dark:text-red-400 mb-4">
@@ -26,12 +28,12 @@ export default function ErrorDisplay({ message, onRetry }: ErrorDisplayProps) {
         Error Loading Artworks
       </h3>
       <p className="text-gray-600 dark:text-gray-400 mb-4">{message}</p>
-      {onRetry && (
+      {(onRetry || onAction) && (
         <button
-          onClick={onRetry}
+          onClick={onAction || onRetry}
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
         >
-          Try Again
+          {actionText || 'Try Again'}
         </button>
       )}
     </div>

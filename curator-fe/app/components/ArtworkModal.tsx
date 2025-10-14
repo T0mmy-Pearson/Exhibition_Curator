@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLoginPrompt } from '../hooks/useLoginPrompt';
+import LoginPromptModal from './LoginPromptModal';
 
 export interface ArtworkDetails {
   objectID?: string;
@@ -50,10 +52,13 @@ interface ArtworkModalProps {
 
 export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalProps) {
   const { user, token } = useAuth();
+  const loginPrompt = useLoginPrompt();
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showHeartAnimation, setShowHeartAnimation] = useState(false);
+  const [showDoubleTapHint, setShowDoubleTapHint] = useState(false);
 
   // Get all available images
   const allImages = artwork ? [
@@ -102,47 +107,57 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
     }
   }, [isOpen, artwork, user, token, artworkId]);
 
-  // Handle favorite toggle
+  // Handle favorite toggle with login prompt
   const toggleFavorite = async () => {
-    if (!user || !token || !artwork) return;
+    // Use requireAuth to check login and prompt if needed
+    loginPrompt.requireAuth(async () => {
+      if (!token || !artwork) return;
 
-    setLoading(true);
-    try {
-      const method = isFavorite ? 'DELETE' : 'POST';
-      const endpoint = isFavorite 
-        ? `http://localhost:9090/api/users/favorites/${artworkId}`
-        : 'http://localhost:9090/api/users/favorites';
+      setLoading(true);
+      try {
+        const method = isFavorite ? 'DELETE' : 'POST';
+        const endpoint = isFavorite 
+          ? `http://localhost:9090/api/users/favorites/${artworkId}`
+          : 'http://localhost:9090/api/users/favorites';
 
-      const body = isFavorite ? undefined : JSON.stringify({
-        artworkId: artworkId,
-        title: artwork.title,
-        artist: artistName,
-        date: artworkDate,
-        medium: artwork.medium,
-        imageUrl: artwork.imageUrl || artwork.primaryImage,
-        objectURL: artwork.objectURL,
-        department: artwork.department,
-        culture: artwork.culture,
-        museumSource: artwork.museumSource || 'unknown'
-      });
+        const body = isFavorite ? undefined : JSON.stringify({
+          artworkId: artworkId,
+          title: artwork.title,
+          artist: artistName,
+          date: artworkDate,
+          medium: artwork.medium,
+          imageUrl: artwork.imageUrl || artwork.primaryImage,
+          objectURL: artwork.objectURL,
+          department: artwork.department,
+          culture: artwork.culture,
+          museumSource: artwork.museumSource || 'unknown'
+        });
 
-      const response = await fetch(endpoint, {
-        method,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        ...(body && { body })
-      });
+        const response = await fetch(endpoint, {
+          method,
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          ...(body && { body })
+        });
 
-      if (response.ok) {
-        setIsFavorite(!isFavorite);
+        if (response.ok) {
+          const newFavoriteState = !isFavorite;
+          setIsFavorite(newFavoriteState);
+          
+          // Show heart animation when favoriting (not unfavoriting)
+          if (newFavoriteState) {
+            setShowHeartAnimation(true);
+            setTimeout(() => setShowHeartAnimation(false), 1000);
+          }
+        }
+      } catch (error) {
+        console.error('Error toggling favorite:', error);
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
-    } finally {
-      setLoading(false);
-    }
+    }, 'favorite-artwork', { artworkTitle: artwork?.title });
   };
 
   // Handle keyboard navigation
@@ -218,25 +233,31 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
                 </svg>
               </button>
 
-              {/* Favorite button */}
-              {user && (
-                <button
-                  onClick={toggleFavorite}
-                  disabled={loading}
-                  className={`p-2 rounded-md transition-colors ${
-                    isFavorite
-                      ? 'text-red-600 hover:text-red-700 bg-red-50 dark:bg-red-900/20'
-                      : 'text-gray-500 hover:text-red-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-gray-800'
-                  }`}
-                  title={isFavorite ? 'Remove from favorites (F)' : 'Add to favorites (F)'}
-                >
-                  <svg className="h-5 w-5" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+              {/* Favorite button - Instagram style */}
+              <button
+                onClick={toggleFavorite}
+                disabled={loading}
+                className={`p-2 rounded-full transition-all transform hover:scale-110 ${
+                  isFavorite
+                    ? 'text-red-500 hover:text-red-600'
+                    : 'text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400'
+                }`}
+                title={isFavorite ? 'Remove from favorites (F)' : 'Add to favorites (F)'}
+              >
+                {isFavorite ? (
+                  // Filled heart
+                  <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                ) : (
+                  // Empty heart outline
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                       d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
                     />
                   </svg>
-                </button>
-              )}
+                )}
+              </button>
 
               {/* Close button */}
               <button
@@ -257,15 +278,57 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
             <div className="lg:w-2/3 relative bg-gray-50 dark:bg-gray-800 flex-shrink-0">
               {allImages.length > 0 ? (
                 <div className="relative h-full min-h-[400px] lg:min-h-[600px]">
-                  <img
-                    src={allImages[currentImageIndex]}
-                    alt={artwork.title}
-                    className="w-full h-full object-contain"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = '/placeholder-artwork.jpg';
-                    }}
-                  />
+                  <div 
+                    className="relative w-full h-full group"
+                    onMouseEnter={() => !isFavorite && setShowDoubleTapHint(true)}
+                    onMouseLeave={() => setShowDoubleTapHint(false)}
+                  >
+                    <img
+                      src={allImages[currentImageIndex]}
+                      alt={artwork.title}
+                      className="w-full h-full object-contain cursor-pointer"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = '/placeholder-artwork.jpg';
+                      }}
+                      onDoubleClick={() => {
+                        // Double-click to favorite (like Instagram)
+                        if (!isFavorite) {
+                          toggleFavorite();
+                        }
+                      }}
+                    />
+
+                    {/* Double-tap hint */}
+                    {showDoubleTapHint && !isFavorite && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black bg-opacity-20 transition-opacity">
+                        <div className="bg-black bg-opacity-50 text-white px-3 py-2 rounded-full text-sm flex items-center gap-2">
+                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+                            />
+                          </svg>
+                          Double-click to favorite
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Instagram-style heart animation */}
+                  {showHeartAnimation && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                      <div className="animate-ping">
+                        <svg className="h-20 w-20 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                      </div>
+                      <div className="absolute">
+                        <svg className="h-16 w-16 text-red-500 animate-bounce" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Image navigation */}
                   {allImages.length > 1 && (
@@ -499,7 +562,12 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
                   <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Keyboard Shortcuts</h4>
                   <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
                     <div>← → Navigate images</div>
-                    <div>F Toggle favorite</div>
+                    <div className="flex items-center gap-1">
+                      <span>F Toggle favorite</span>
+                      <svg className="h-3 w-3 text-red-400" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                      </svg>
+                    </div>
                     <div>Esc Close modal</div>
                   </div>
                 </div>
@@ -507,6 +575,15 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
             </div>
           </div>
         </div>
+        
+        {/* Login Prompt Modal */}
+        <LoginPromptModal
+          isOpen={loginPrompt.isOpen}
+          onClose={loginPrompt.hideLoginPrompt}
+          onLoginSuccess={loginPrompt.handleLoginSuccess}
+          trigger={loginPrompt.trigger}
+          artworkTitle={loginPrompt.artworkTitle}
+        />
     </div>
   );
 }

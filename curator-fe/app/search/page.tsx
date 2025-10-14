@@ -2,12 +2,14 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useLoginPrompt } from '../hooks/useLoginPrompt';
 import ExhibitionSearch, { Exhibition } from '../components/ExhibitionSearch';
 import ExhibitionList from '../components/ExhibitionList';
 import ArtworkSearch from '../components/ArtworkSearch';
 import ArtworkList from '../components/ArtworkList';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorDisplay from '../components/ErrorDisplay';
+import LoginPromptModal from '../components/LoginPromptModal';
 
 type SearchMode = 'exhibitions' | 'artworks';
 
@@ -21,6 +23,7 @@ interface SearchFilters {
 
 export default function SearchPage() {
   const { token } = useAuth();
+  const loginPrompt = useLoginPrompt();
   const [searchMode, setSearchMode] = useState<SearchMode>('exhibitions');
   const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
   const [artworks, setArtworks] = useState<any[]>([]);
@@ -211,9 +214,9 @@ export default function SearchPage() {
               initialSource="all"
             />
             <ArtworkList
-              artworks={artworks}
-              loading={loading}
-              error={error}
+              searchTerm="renaissance"
+              source="all"
+              limit={100}
             />
           </>
         )}
@@ -252,6 +255,15 @@ export default function SearchPage() {
             </div>
           </div>
         )}
+
+        {/* Login Prompt Modal */}
+        <LoginPromptModal
+          isOpen={loginPrompt.isOpen}
+          onClose={loginPrompt.hideLoginPrompt}
+          onLoginSuccess={loginPrompt.handleLoginSuccess}
+          trigger={loginPrompt.trigger}
+          artworkTitle={loginPrompt.artworkTitle}
+        />
       </div>
     </div>
   );

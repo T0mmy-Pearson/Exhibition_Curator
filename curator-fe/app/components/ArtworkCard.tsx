@@ -1,13 +1,22 @@
 import Image from 'next/image';
+import { useState } from 'react';
 import { StandardizedArtwork } from '../types/artwork';
+import { useAuth } from '../contexts/AuthContext';
+import { useLoginPrompt } from '../hooks/useLoginPrompt';
+import LoginPromptModal from './LoginPromptModal';
 
 interface ArtworkCardProps {
   artwork: StandardizedArtwork;
   onClick?: (artwork: StandardizedArtwork) => void;
   showQuickInfo?: boolean;
+  showFavoriteButton?: boolean;
 }
 
-export default function ArtworkCard({ artwork, onClick, showQuickInfo = true }: ArtworkCardProps) {
+export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, showFavoriteButton = true }: ArtworkCardProps) {
+  const { user, token } = useAuth();
+  const loginPrompt = useLoginPrompt();
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [loading, setLoading] = useState(false);
   // Get the appropriate image URL (prefer small image for list view)
   const imageUrl = artwork.smallImageUrl || artwork.imageUrl;
   
@@ -46,6 +55,53 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true }: 
     }
   };
 
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
+    
+    // Use requireAuth to check login and prompt if needed
+    loginPrompt.requireAuth(async () => {
+      if (!token || !artwork) return;
+
+      setLoading(true);
+      try {
+        const artworkId = artwork.objectID?.toString() || artwork.id;
+        const method = isFavorite ? 'DELETE' : 'POST';
+        const endpoint = isFavorite 
+          ? `http://localhost:9090/api/users/favorites/${artworkId}`
+          : 'http://localhost:9090/api/users/favorites';
+
+        const body = isFavorite ? undefined : JSON.stringify({
+          artworkId: artworkId,
+          title: artwork.title,
+          artist: artwork.artist,
+          date: artwork.date,
+          medium: artwork.medium,
+          imageUrl: artwork.imageUrl,
+          department: artwork.department,
+          culture: artwork.culture,
+          museumSource: artwork.source || 'unknown'
+        });
+
+        const response = await fetch(endpoint, {
+          method,
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          ...(body && { body })
+        });
+
+        if (response.ok) {
+          setIsFavorite(!isFavorite);
+        }
+      } catch (error) {
+        console.error('Error toggling favorite:', error);
+      } finally {
+        setLoading(false);
+      }
+    }, 'favorite-artwork', { artworkTitle: artwork?.title });
+  };
+
   return (
     <div 
       className={`bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 ${
@@ -54,7 +110,7 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true }: 
       onClick={handleClick}
     >
       {/* Image container */}
-      <div className="relative h-48 w-full bg-gray-200 dark:bg-gray-700">
+      <div className="relative h-48 w-full bg-gray-200 dark:bg-gray-700 group">
         {imageUrl ? (
           <Image
             src={imageUrl}
@@ -80,6 +136,34 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true }: 
               />
             </svg>
           </div>
+        )}
+
+        {/* Floating heart button */}
+        {showFavoriteButton && (
+          <button
+            onClick={handleFavoriteClick}
+            disabled={loading}
+            className={`absolute top-3 right-3 p-2 rounded-full transition-all transform hover:scale-110 opacity-0 group-hover:opacity-100 backdrop-blur-sm ${
+              isFavorite
+                ? 'text-red-500 bg-white/90 shadow-lg'
+                : 'text-white bg-black/50 hover:bg-black/70'
+            }`}
+            title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+          >
+            {isFavorite ? (
+              // Filled heart
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            ) : (
+              // Empty heart outline
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
+                />
+              </svg>
+            )}
+          </button>
         )}
       </div>
 
@@ -124,6 +208,15 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true }: 
           </p>
         )}
       </div>
+
+      {/* Login Prompt Modal */}
+      <LoginPromptModal
+        isOpen={loginPrompt.isOpen}
+        onClose={loginPrompt.hideLoginPrompt}
+        onLoginSuccess={loginPrompt.handleLoginSuccess}
+        trigger={loginPrompt.trigger}
+        artworkTitle={loginPrompt.artworkTitle}
+      />
     </div>
   );
 }
