@@ -106,13 +106,23 @@ export const insertExhibition = async (userId: string, exhibitionData: Exhibitio
       throw new Error('User not found');
     }
 
+    // Validate required fields
+    if (!exhibitionData.title || exhibitionData.title.trim().length === 0) {
+      throw new Error('Exhibition title is required');
+    }
+
     // Generate shareable link if exhibition is public
     const shareableLink = exhibitionData.isPublic 
       ? generateShareableLink(exhibitionData.title, userId)
       : undefined;
 
     const newExhibitionData = {
-      ...exhibitionData,
+      title: exhibitionData.title,
+      description: exhibitionData.description || '',
+      theme: exhibitionData.theme || '',
+      isPublic: exhibitionData.isPublic || false,
+      tags: exhibitionData.tags || [],
+      coverImageUrl: exhibitionData.coverImageUrl || '',
       shareableLink,
       artworks: [], // Start with empty artworks array
       createdAt: new Date(),

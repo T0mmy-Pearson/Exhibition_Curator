@@ -1,7 +1,10 @@
 // API configuration for the Exhibition Curator frontend
 
 // Get the API base URL from environment variables
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:9090/api';
+// For production, set NEXT_PUBLIC_API_URL=https://your-backend.railway.app
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ? 
+  `${process.env.NEXT_PUBLIC_API_URL}/api` : 
+  'http://localhost:9090/api';
 
 // API endpoints
 export const API_ENDPOINTS = {
@@ -31,8 +34,17 @@ export const API_ENDPOINTS = {
   
   // User endpoints
   USERS: `${API_BASE_URL}/users`,
-  USER_FAVORITES: `${API_BASE_URL}/users/favorites`,
-  USER_EXHIBITIONS: `${API_BASE_URL}/users/exhibitions`,
+  USER_PROFILE: `${API_BASE_URL}/users/me/profile`,
+  USER_FAVORITES: `${API_BASE_URL}/favorites`,
+  USER_EXHIBITIONS: `${API_BASE_URL}/users/me/exhibitions`,
+  
+  // Favorites endpoints
+  FAVORITES_ADD: `${API_BASE_URL}/favorites`,
+  FAVORITES_REMOVE: (artworkId: string) => `${API_BASE_URL}/favorites/${artworkId}`,
+  
+  // Exhibition endpoints  
+  EXHIBITIONS: `${API_BASE_URL}/exhibitions`,
+  EXHIBITION_DELETE: (id: string) => `${API_BASE_URL}/exhibitions/${id}`,
 };
 
 // API configuration

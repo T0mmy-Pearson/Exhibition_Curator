@@ -13,7 +13,6 @@ export interface AppConfig {
     metApiUrl: string;
     rijksApiKey: string;
     rijksApiUrl: string;
-    rijksOldApiUrl: string;
     vaApiUrl: string;
   };
 }
@@ -45,7 +44,6 @@ export const getConfig = (): AppConfig => {
       metApiUrl: process.env.MET_MUSEUM_API_URL || 'https://collectionapi.metmuseum.org/public/collection/v1',
       rijksApiKey: process.env.RIJKS_MUSEUM_API_KEY || '',
       rijksApiUrl: process.env.RIJKS_MUSEUM_API_URL || 'https://data.rijksmuseum.nl',
-      rijksOldApiUrl: process.env.RIJKS_MUSEUM_OLD_API_URL || 'https://www.rijksmuseum.nl/api/en/collection',
       vaApiUrl: process.env.VA_MUSEUM_API_URL || 'https://api.vam.ac.uk/v2',
     },
   };

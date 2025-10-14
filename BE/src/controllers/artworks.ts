@@ -76,29 +76,16 @@ export const searchArtworks = async (req: Request, res: Response) => {
       }
     }
 
-    // Search Rijksmuseum if source is 'rijks' or 'all'
-    if (source === 'rijks' || source === 'all') {
-      try {
-        const rijksArtworks = await rijksService.searchStandardizedArtworks({
-          q: q as string,
-          imageAvailable: hasImages === 'true',
-          limit: parsedLimit
-        });
-        allArtworks.push(...rijksArtworks);
-        console.log(`Found ${rijksArtworks.length} artworks from Rijksmuseum`);
-      } catch (error: any) {
-        console.error('Error searching Rijksmuseum:', error.message);
-        if (source === 'rijks') {
-          return res.status(500).json({
-            error: 'Museum search failed',
-            message: 'Failed to search Rijksmuseum. Please try again later.',
-            details: error.message,
-            source: 'rijks',
-            suggestion: 'Try searching "All Museums" to include other museum results'
-          });
-        }
-        // Continue with other sources if searching 'all'
-      }
+    // Rijksmuseum temporarily disabled - IIIF integration complex
+    // Can be re-enabled when IIIF identifier mapping is resolved
+    if (source === 'rijks') {
+      return res.status(501).json({
+        error: 'Not implemented',
+        message: 'Rijksmuseum integration temporarily disabled',
+        count: 0,
+        source: 'rijks',
+        museum: 'Rijksmuseum'
+      });
     }
 
     // Search V&A Museum if source is 'va' or 'all'

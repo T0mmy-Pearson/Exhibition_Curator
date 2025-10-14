@@ -1,23 +1,7 @@
 import axios from 'axios';
 import { config } from '../config';
 
-// Rijksmuseum Old API interfaces (for images)
-export interface RijksOldApiResponse {
-  artObject: {
-    id: string;
-    objectNumber: string;
-    title: string;
-    webImage?: {
-      guid: string;
-      url: string;
-      width: number;
-      height: number;
-    };
-    hasImage: boolean;
-  };
-}
-
-// Rijksmuseum New API interfaces (for metadata)
+// Rijksmuseum Data Services API interfaces
 export interface RijksSearchResponse {
   '@context': string;
   id: string;
@@ -168,37 +152,99 @@ export class RijksmuseumService {
   }
 
   /**
-   * Fetch image URLs from the old Rijksmuseum API using object number
+   * Extract IIIF identifier from D1_Digital_Object access points in E36_Visual_Item
+   * Following Rijksmuseum's Linked Art structure:
+   * E22_Human-Made_Object -> shows -> E36_Visual_Item -> digitally_shown_by -> D1_Digital_Object -> access_point
    */
-  private async fetchImageFromOldApi(objectNumber: string): Promise<{ imageUrl?: string; smallImageUrl?: string }> {
+  private async extractIIIFIdentifier(rijksArtwork: any): Promise<string | null> {
     try {
-      const response = await axios.get<RijksOldApiResponse>(
-        `${config.museum.rijksOldApiUrl}/${objectNumber}`,
-        {
-          params: {
-            key: config.museum.rijksApiKey,
-            format: 'json'
-          },
-          timeout: 15000
+      console.log(`🔍 Extracting IIIF for object: ${rijksArtwork.id}`);
+      
+      // Look for E36_Visual_Item references in the E22_Human-Made_Object
+      const visualItems = rijksArtwork.shows || [];
+      console.log(`Found ${visualItems.length} visual items in shows array`);
+      
+      for (let i = 0; i < visualItems.length; i++) {
+        const visualItem = visualItems[i];
+        console.log(`Processing visual item ${i + 1}:`, visualItem);
+        // If visualItem is just a reference, we need to fetch the full data
+        if (visualItem.id && visualItem.type === 'VisualItem') {
+          console.log(`Fetching VisualItem data from: ${visualItem.id}`);
+          
+          try {
+            const visualItemResponse = await axios.get(visualItem.id, {
+              headers: {
+                'Accept': 'application/ld+json',
+                'User-Agent': 'Exhibition-Curator/1.0 (Educational Project)'
+              },
+              timeout: 10000
+            });
+            
+            const fullVisualItem = visualItemResponse.data;
+            
+            if (fullVisualItem) {
+              console.log(`VisualItem structure:`, JSON.stringify(fullVisualItem, null, 2));
+              
+              // Look for D1_Digital_Object in digitally_shown_by
+              const digitalObjects = fullVisualItem.digitally_shown_by || [];
+              console.log(`Found ${digitalObjects.length} digital objects in VisualItem`);
+              
+              for (const digitalObject of digitalObjects) {
+                console.log(`Digital Object:`, JSON.stringify(digitalObject, null, 2));
+                
+                // Look for access points to IIIF services
+                const accessPoints = digitalObject.access_point || [];
+                
+                for (const accessPoint of accessPoints) {
+                  const url = accessPoint.id || accessPoint['@id'];
+                  if (url && url.includes('iiif.micr.io')) {
+                    // Extract identifier from IIIF URL
+                    const match = url.match(/iiif\.micr\.io\/([^\/]+)/);
+                    if (match && match[1]) {
+                      console.log(`✅ Found IIIF identifier: ${match[1]} from URL: ${url}`);
+                      return match[1];
+                    }
+                  }
+                }
+              }
+            }
+          } catch (error: any) {
+            console.warn(`Failed to fetch VisualItem ${visualItem.id}: ${error.message}`);
+            if (error.response) {
+              console.warn(`Response status: ${error.response.status}, data:`, error.response.data);
+            }
+          }
         }
-      );
-
-      const webImage = response.data.artObject.webImage;
-      if (webImage && webImage.url && webImage.url.trim() !== '') {
-        // Generate different sized images from the Google API URL
-        const baseImageUrl = webImage.url;
-        const imageUrl = baseImageUrl; // Full size
-        const smallImageUrl = baseImageUrl.replace('=s0', '=s400'); // 400px width
-
-        return { imageUrl, smallImageUrl };
+        
+        // Also check if the visual item data is already embedded
+        else if (visualItem.digitally_shown_by) {
+          const digitalObjects = visualItem.digitally_shown_by || [];
+          
+          for (const digitalObject of digitalObjects) {
+            const accessPoints = digitalObject.access_point || [];
+            
+            for (const accessPoint of accessPoints) {
+              const url = accessPoint.id || accessPoint['@id'];
+              if (url && url.includes('iiif.micr.io')) {
+                const match = url.match(/iiif\.micr\.io\/([^\/]+)/);
+                if (match && match[1]) {
+                  console.log(`Found embedded IIIF identifier: ${match[1]}`);
+                  return match[1];
+                }
+              }
+            }
+          }
+        }
       }
-
-      return {};
+      
+      return null;
     } catch (error) {
-      console.warn(`Failed to fetch image for object ${objectNumber}:`, error);
-      return {};
+      console.warn('Failed to extract IIIF identifier:', error);
+      return null;
     }
   }
+
+
 
   /**
    * Search artworks in Rijksmuseum collection
@@ -230,9 +276,9 @@ export class RijksmuseumService {
       }
       if (params.pageToken) searchParams.pageToken = params.pageToken;
 
-      const response = await axios.get(`${this.baseUrl}/search/collection`, {
+      const response = await axios.get(`https://data.rijksmuseum.nl/search/collection`, {
         params: searchParams,
-        timeout: 15000,
+        // Removed timeout to prevent frontend timeouts
         headers: {
           'Accept': 'application/json',
           'User-Agent': 'Exhibition-Curator/1.0 (Educational Project)'
@@ -253,7 +299,7 @@ export class RijksmuseumService {
     try {
       // Rijksmuseum uses persistent identifiers - use Linked Art format
       const response = await axios.get(`https://data.rijksmuseum.nl/${objectId}`, {
-        timeout: 10000,
+        // Removed timeout to prevent frontend timeouts
         headers: {
           'Accept': 'application/ld+json',
           'User-Agent': 'Exhibition-Curator/1.0 (Educational Project)'
@@ -327,10 +373,15 @@ export class RijksmuseumService {
       )
     )?.content;
 
-    // Fetch images from the old API using hybrid approach
-    const { imageUrl, smallImageUrl } = objectNumber 
-      ? await this.fetchImageFromOldApi(objectNumber)
-      : { imageUrl: undefined, smallImageUrl: undefined };
+    // Extract IIIF identifier for images
+    const iiifIdentifier = await this.extractIIIFIdentifier(rijksArtwork);
+    
+    const imageUrl = iiifIdentifier 
+      ? `https://iiif.micr.io/${iiifIdentifier}/full/max/0/default.jpg`
+      : undefined;
+    const smallImageUrl = iiifIdentifier 
+      ? `https://iiif.micr.io/${iiifIdentifier}/full/400,/0/default.jpg`
+      : undefined;
 
     // Extract object type from classified_as
     const objectType = rijksArtwork.classified_as?.find((c: any) => 
@@ -468,35 +519,34 @@ export class RijksmuseumService {
 
       const limit = params.limit || 20;
       const selectedItems = searchResponse.orderedItems.slice(0, limit);
-      const artworks: any[] = [];
 
       console.log(`Rijksmuseum: Starting to fetch ${selectedItems.length} artworks...`);
 
-      // Fetch details for each artwork
-      for (let i = 0; i < selectedItems.length; i++) {
-        const item = selectedItems[i];
+      // Fetch details for each artwork in parallel (optimized for performance)
+      const fetchPromises = selectedItems.map(async (item, index) => {
         try {
           // Extract object ID from the Rijksmuseum ID URL
           const objectId = item.id.split('/').pop();
-          if (!objectId) continue;
+          if (!objectId) return null;
 
           const rijksArtwork = await this.getArtworkById(objectId);
           const standardized = await this.standardizeArtwork(rijksArtwork);
-          artworks.push(standardized);
-
-          // Log progress
-          if (i % 5 === 0) {
-            console.log(`Rijksmuseum: Fetched ${i + 1}/${selectedItems.length} artworks`);
+          
+          // Log progress for every 5th item
+          if (index % 5 === 0) {
+            console.log(`Rijksmuseum: Processing item ${index + 1}/${selectedItems.length}`);
           }
-
-          // Add small delay to be respectful to the API
-          if (i < selectedItems.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-          }
+          
+          return standardized;
         } catch (error: any) {
           console.warn(`Failed to fetch Rijksmuseum artwork ${item.id}, skipping:`, error.message);
+          return null;
         }
-      }
+      });
+
+      // Wait for all promises to resolve and filter out nulls
+      const results = await Promise.all(fetchPromises);
+      const artworks = results.filter(artwork => artwork !== null);
 
       console.log(`Rijksmuseum: Successfully retrieved ${artworks.length} artworks`);
       return artworks;
