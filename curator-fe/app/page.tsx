@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <div>
       {/* Hero section with search navigation */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-12 mb-8">
+      <div className="bg-black text-white py-12 mb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl font-bold mb-4">
             Exhibition Curator
@@ -18,13 +18,13 @@ export default function Home() {
           <div className="flex justify-center gap-4">
             <Link
               href="/search"
-              className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
+              className="bg-white text-black px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
             >
               🔍 Search Exhibitions
             </Link>
             <button
               onClick={() => document.getElementById('artworks')?.scrollIntoView({ behavior: 'smooth' })}
-              className="bg-transparent border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors"
+              className="bg-transparent border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-black transition-colors"
             >
               🎨 Browse Artworks
             </button>
