@@ -1,103 +1,82 @@
 #!/bin/bash
 
-# 🚀 Exhibition Curator - Production Deployment Setup Script
-# This script helps you prepare for production deployment
+# Production Setup Script for Exhibition Curator Backend
 
 echo "🎨 Exhibition Curator - Production Setup"
-echo "========================================"
+echo "======================================="
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# Check if we're in the right directory
-if [ ! -f "be/package.json" ] || [ ! -f "curator-fe/package.json" ]; then
-    echo -e "${RED}❌ Error: Please run this script from the Exhibition_Curator root directory${NC}"
+# Check if Node.js is installed
+if ! command -v node &> /dev/null; then
+    echo "❌ Node.js is not installed. Please install Node.js first."
     exit 1
 fi
 
-echo -e "${BLUE}📋 Pre-deployment Checklist${NC}"
-echo "=============================="
-
-# Backend checks
-echo -e "${YELLOW}Backend Checks:${NC}"
-
-# Check if TypeScript builds successfully
-echo -n "🔨 Building backend TypeScript... "
-cd be
-if npm run build > /dev/null 2>&1; then
-    echo -e "${GREEN}✅ Success${NC}"
-else
-    echo -e "${RED}❌ Failed - Fix TypeScript errors before deploying${NC}"
-    cd ..
+# Check if npm is installed
+if ! command -v npm &> /dev/null; then
+    echo "❌ npm is not installed. Please install npm first."
     exit 1
 fi
 
-# Check for required environment template
-if [ -f ".env.production.template" ]; then
-    echo -e "📋 Environment template found: ${GREEN}✅${NC}"
-else
-    echo -e "${RED}❌ .env.production.template not found${NC}"
-fi
+echo "✅ Node.js and npm are available"
 
-# Check for Railway config
-if [ -f "railway.toml" ]; then
-    echo -e "🚂 Railway config found: ${GREEN}✅${NC}"
-else
-    echo -e "${RED}❌ railway.toml not found${NC}"
-fi
-
-cd ..
-
-# Frontend checks
-echo -e "${YELLOW}Frontend Checks:${NC}"
-echo -n "🔨 Building frontend... "
-cd curator-fe
-if npm run build > /dev/null 2>&1; then
-    echo -e "${GREEN}✅ Success${NC}"
-else
-    echo -e "${RED}❌ Failed - Fix build errors before deploying${NC}"
-    cd ..
+# Check if .env.production exists
+if [ ! -f ".env.production" ]; then
+    echo "❌ .env.production file not found!"
+    echo "📝 Please create .env.production with your MongoDB Atlas connection string"
+    echo "📖 See PRODUCTION_DATABASE_SETUP.md for detailed instructions"
     exit 1
 fi
 
-# Check for frontend environment template
-if [ -f ".env.production.template" ]; then
-    echo -e "📋 Environment template found: ${GREEN}✅${NC}"
-else
-    echo -e "${RED}❌ .env.production.template not found${NC}"
+echo "✅ .env.production file found"
+
+# Install dependencies
+echo "📦 Installing dependencies..."
+npm install
+
+if [ $? -ne 0 ]; then
+    echo "❌ Failed to install dependencies"
+    exit 1
 fi
 
-cd ..
+echo "✅ Dependencies installed"
+
+# Build the application
+echo "🔨 Building application..."
+npm run build:prod
+
+if [ $? -ne 0 ]; then
+    echo "❌ Build failed"
+    exit 1
+fi
+
+echo "✅ Application built successfully"
+
+# Test database connection
+echo "🔌 Testing database connection..."
+NODE_ENV=production node -e "
+const { connectDB, disconnectDB } = require('./dist/db/connection.js');
+connectDB()
+  .then(() => {
+    console.log('✅ Database connection successful');
+    return disconnectDB();
+  })
+  .then(() => {
+    console.log('✅ Setup completed successfully!');
+    console.log('🚀 You can now run: npm run start:prod');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('❌ Database connection failed:', error.message);
+    console.log('📖 Please check your MONGODB_URI in .env.production');
+    process.exit(1);
+  });
+"
 
 echo ""
-echo -e "${GREEN}🎉 Ready for Production Deployment!${NC}"
+echo "🎉 Production setup completed!"
+echo "🚀 To start the production server:"
+echo "   npm run start:prod"
 echo ""
-echo -e "${BLUE}Next Steps:${NC}"
-echo "1. 🗄️  Set up MongoDB Atlas cluster (if not already done)"
-echo "2. 🌐 Deploy backend to Render (RECOMMENDED):"
-echo "   - Sign up at https://render.com"
-echo "   - Create Web Service from GitHub repository"
-echo "   - Set Root Directory to 'be'"
-echo "   - Build Command: 'npm install && npm run build'"
-echo "   - Start Command: 'npm start'"
-echo "   - Add environment variables from .env.production.template"
-echo ""
-echo "3. ⚡ Deploy frontend to Vercel:"
-echo "   - Sign up at https://vercel.com"
-echo "   - Connect your GitHub repository"
-echo "   - Deploy from /curator-fe folder"
-echo "   - Add NEXT_PUBLIC_API_URL environment variable"
-echo ""
-echo -e "${YELLOW}📖 Full deployment guide: ./deployment-checklist.md${NC}"
-
-# Generate JWT secret suggestion
-echo ""
-echo -e "${BLUE}🔐 Security Reminder:${NC}"
-echo "Generate a secure JWT secret (copy this):"
-echo -e "${GREEN}$(openssl rand -base64 32)${NC}"
-echo ""
-echo -e "${RED}⚠️  Remember: Never commit .env.production files!${NC}"
+echo "📊 To monitor the application:"
+echo "   Check your MongoDB Atlas dashboard"
+echo "   Monitor application logs"

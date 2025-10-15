@@ -1,0 +1,10 @@
+import { Request, Response, NextFunction } from 'express';
+interface AuthenticatedRequest extends Request {
+    user?: any;
+}
+export declare const getUserFavorites: (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
+export declare const addToFavorites: (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
+export declare const removeFromFavorites: (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
+export declare const searchFavorites: (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
+export {};
+//# sourceMappingURL=favorites.d.ts.map
