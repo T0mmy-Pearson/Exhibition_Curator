@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserFavorites = exports.getUserExhibitions = exports.deleteUser = exports.updateUser = exports.createUser = exports.getUserById = exports.getUsers = void 0;
+exports.updateUserProfile = exports.getUserProfile = exports.getUserFavorites = exports.getUserExhibitions = exports.deleteUser = exports.updateUser = exports.createUser = exports.getUserById = exports.getUsers = void 0;
 const userModel = __importStar(require("../models/users"));
 const getUsers = async (req, res, next) => {
     try {
@@ -266,4 +266,94 @@ const getUserFavorites = async (req, res, next) => {
     }
 };
 exports.getUserFavorites = getUserFavorites;
+const getUserProfile = async (req, res, next) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) {
+            return res.status(401).json({
+                error: 'Unauthorized',
+                message: 'User not authenticated'
+            });
+        }
+        const user = await userModel.fetchUserById(userId);
+        if (!user) {
+            return res.status(404).json({
+                error: 'User not found',
+                message: 'User profile not found'
+            });
+        }
+        // Format user profile response (exclude sensitive data)
+        const profile = {
+            id: user._id,
+            username: user.username,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            bio: user.bio,
+            profileImageUrl: user.profileImageUrl,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt,
+            favoriteCount: user.favoriteArtworks?.length || 0,
+            exhibitionCount: user.exhibitions?.length || 0
+        };
+        res.status(200).json({
+            message: 'Profile retrieved successfully',
+            profile
+        });
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.getUserProfile = getUserProfile;
+const updateUserProfile = async (req, res, next) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId) {
+            return res.status(401).json({
+                error: 'Unauthorized',
+                message: 'User not authenticated'
+            });
+        }
+        const { firstName, lastName, bio, email } = req.body;
+        // Validate input
+        const updates = {};
+        if (firstName !== undefined)
+            updates.firstName = firstName;
+        if (lastName !== undefined)
+            updates.lastName = lastName;
+        if (bio !== undefined)
+            updates.bio = bio;
+        if (email !== undefined)
+            updates.email = email;
+        // Update user profile
+        const updatedUser = await userModel.updateUserById(userId, updates);
+        if (!updatedUser) {
+            return res.status(404).json({
+                error: 'User not found',
+                message: 'User profile not found'
+            });
+        }
+        // Format response (exclude sensitive data)
+        const profile = {
+            id: updatedUser._id,
+            username: updatedUser.username,
+            email: updatedUser.email,
+            firstName: updatedUser.firstName,
+            lastName: updatedUser.lastName,
+            bio: updatedUser.bio,
+            profileImageUrl: updatedUser.profileImageUrl,
+            createdAt: updatedUser.createdAt,
+            updatedAt: updatedUser.updatedAt
+        };
+        res.status(200).json({
+            message: 'Profile updated successfully',
+            profile
+        });
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.updateUserProfile = updateUserProfile;
 //# sourceMappingURL=users.js.map

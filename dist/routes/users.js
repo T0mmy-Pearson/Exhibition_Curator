@@ -12,6 +12,9 @@ exports.usersRouter.get('/', users_1.getUsers);
 exports.usersRouter.get('/:user_id', users_1.getUserById);
 exports.usersRouter.patch('/:user_id', users_1.updateUser);
 exports.usersRouter.delete('/:user_id', users_1.deleteUser);
+// Current user profile management
+exports.usersRouter.get('/me/profile', users_1.getUserProfile);
+exports.usersRouter.patch('/me/profile', users_1.updateUserProfile);
 // Current user's exhibitions and favorites (no user_id needed)
 exports.usersRouter.get('/me/exhibitions', users_1.getUserExhibitions);
 exports.usersRouter.get('/me/favorites', users_1.getUserFavorites);

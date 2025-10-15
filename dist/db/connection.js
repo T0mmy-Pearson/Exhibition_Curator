@@ -14,19 +14,21 @@ if (ENV === 'production') {
 else {
     dotenv_1.default.config();
 }
-let mongoUri;
-if (ENV === 'production') {
-    mongoUri = process.env.MONGODB_URI || '';
-    if (!mongoUri) {
-        throw new Error('Production MONGODB_URI is required but not provided');
+const getMongoUri = () => {
+    if (ENV === 'production') {
+        const mongoUri = process.env.MONGODB_URI || '';
+        if (!mongoUri) {
+            throw new Error('Production MONGODB_URI is required but not provided');
+        }
+        return mongoUri;
     }
-}
-else if (ENV === 'test') {
-    mongoUri = process.env.TEST_MONGODB_URI || 'mongodb://localhost:27017/exhibition_curator_test';
-}
-else {
-    mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/exhibition_curator';
-}
+    else if (ENV === 'test') {
+        return process.env.TEST_MONGODB_URI || 'mongodb://localhost:27017/exhibition_curator_test';
+    }
+    else {
+        return process.env.MONGODB_URI || 'mongodb://localhost:27017/exhibition_curator';
+    }
+};
 // MongoDB connection options for better performance and reliability
 const connectionOptions = {
     maxPoolSize: ENV === 'production' ? 10 : 5, // Maintain up to 10 socket connections
@@ -37,6 +39,7 @@ const connectionOptions = {
 const connectDB = async () => {
     try {
         console.log(`🔌 Connecting to MongoDB (${ENV} environment)...`);
+        const mongoUri = getMongoUri();
         await mongoose_1.default.connect(mongoUri, connectionOptions);
         console.log(`✅ MongoDB connected successfully to ${ENV} database`);
         // Log connection details (without sensitive info)

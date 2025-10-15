@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Backend API for the Exhibition Curator virtual museum platform",
   "main": "dist/server.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node dist/server.js",
     "start:prod": "NODE_ENV=production node dist/server.js",
