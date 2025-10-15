@@ -15,8 +15,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Backend API base URL
-  const API_BASE_URL = 'http://localhost:9090/api';
+  // Backend API base URL - use environment variable or fallback to localhost
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 
+    (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'http://localhost:9090/api');
 
   // Load user from localStorage on app start
   useEffect(() => {
