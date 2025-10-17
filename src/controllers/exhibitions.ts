@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as exhibitionModel from '../models/exhibitions';
+import { User } from '../models/User';
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -23,7 +24,7 @@ export const getExhibitions = async (req: AuthenticatedRequest, res: Response, n
     const exhibitions = await exhibitionModel.fetchUserExhibitions(userId);
     
     // Enhance exhibitions with curator info
-    const user = await import('../models/User').then(m => m.User.findById(userId).select('username firstName lastName'));
+    const user = await User.findById(userId).select('username firstName lastName');
     const enhancedExhibitions = exhibitions.map((exhibition: any) => ({
       ...exhibition.toObject(),
       curator: {
@@ -45,7 +46,7 @@ export const getExhibitionById = async (req: Request, res: Response, next: NextF
     const exhibition = await exhibitionModel.fetchExhibitionById(userId, exhibition_id);
     
     // Enhance exhibition with curator info
-    const user = await import('../models/User').then(m => m.User.findById(userId).select('username firstName lastName'));
+    const user = await User.findById(userId).select('username firstName lastName');
     const enhancedExhibition = {
       ...exhibition.toObject(),
       curator: {
@@ -97,7 +98,7 @@ export const createExhibition = async (req: AuthenticatedRequest, res: Response,
     });
     
     // Enhance exhibition with curator info
-    const user = await import('../models/User').then(m => m.User.findById(userId).select('username firstName lastName'));
+    const user = await User.findById(userId).select('username firstName lastName');
     const enhancedExhibition = {
       ...exhibition.toObject(),
       curator: {

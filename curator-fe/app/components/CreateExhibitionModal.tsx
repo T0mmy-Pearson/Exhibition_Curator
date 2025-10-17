@@ -2,13 +2,14 @@
 
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { CreateExhibitionData, Exhibition } from '../types/exhibition';
 import { useLoginPrompt } from '../hooks/useLoginPrompt';
 import LoginPromptModal from './LoginPromptModal';
 
 interface CreateExhibitionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess?: (exhibition: any) => void;
+  onSuccess?: (exhibition: Exhibition) => void;
 }
 
 export default function CreateExhibitionModal({ 
@@ -86,7 +87,7 @@ export default function CreateExhibitionModal({
     try {
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'http://localhost:9090/api');
       
-      const exhibitionData = {
+      const exhibitionData: CreateExhibitionData = {
         title: exhibitionName.trim(),
         description: description.trim(),
         theme: theme.trim() || 'Mixed',
@@ -97,7 +98,12 @@ export default function CreateExhibitionModal({
       console.log('Creating exhibition with data:', exhibitionData);
       console.log('API endpoint:', `${API_BASE_URL}/exhibitions`);
       console.log('Auth token present:', !!token);
+      console.log('Full headers:', {
+        'Authorization': token ? `Bearer ${token.substring(0, 20)}...` : 'No token',
+        'Content-Type': 'application/json'
+      });
 
+      console.log('Making API request...');
       const response = await fetch(`${API_BASE_URL}/exhibitions`, {
         method: 'POST',
         headers: {
@@ -105,6 +111,12 @@ export default function CreateExhibitionModal({
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(exhibitionData)
+      });
+
+      console.log('Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
       });
 
       if (!response.ok) {
