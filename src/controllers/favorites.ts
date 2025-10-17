@@ -39,7 +39,8 @@ export const getUserFavorites = async (req: AuthenticatedRequest, res: Response,
 export const addToFavorites = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.userId;
-    const { artworkData } = req.body;
+    // Accept either wrapped artworkData or direct fields for frontend compatibility
+    const artworkData = req.body.artworkData || req.body;
     
     if (!userId) {
       return res.status(401).json({

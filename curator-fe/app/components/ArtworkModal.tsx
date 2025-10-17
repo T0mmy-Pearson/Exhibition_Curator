@@ -63,7 +63,6 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
   // Get all available images
   const allImages = artwork ? [
     artwork.imageUrl || artwork.primaryImage,
-    artwork.primaryImageSmall,
     ...(artwork.additionalImages || [])
   ].filter(Boolean) : [];
 
@@ -82,7 +81,8 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
       if (!user || !token || !artworkId) return;
 
       try {
-        const response = await fetch('http://localhost:9090/api/users/favorites', {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'http://localhost:9090/api');
+        const response = await fetch(`${API_BASE_URL}/users/favorites`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -115,10 +115,11 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
 
       setLoading(true);
       try {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'http://localhost:9090/api');
         const method = isFavorite ? 'DELETE' : 'POST';
         const endpoint = isFavorite 
-          ? `http://localhost:9090/api/users/favorites/${artworkId}`
-          : 'http://localhost:9090/api/users/favorites';
+          ? `${API_BASE_URL}/users/favorites/${artworkId}`
+          : `${API_BASE_URL}/users/favorites`;
 
         const body = isFavorite ? undefined : JSON.stringify({
           artworkId: artworkId,
@@ -206,21 +207,21 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
 
       {/* Modal */}
       <div 
-        className={`relative bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-h-[90vh] overflow-y-auto ${
+        className={`relative bg-white border border-black rounded-lg shadow-xl w-full max-h-[90vh] overflow-y-auto ${
           isFullScreen ? 'fixed inset-4 max-w-none max-h-none' : 'max-w-6xl'
         }`}
         onClick={(e) => e.stopPropagation()}
       >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white line-clamp-1">
+          <div className="flex items-center justify-between p-6 border-b border-black sticky">
+            <h2 className="text-2xl font-bold text-black line-clamp-1">
               {artwork.title}
             </h2>
             <div className="flex items-center gap-2">
               {/* Fullscreen toggle */}
               <button
                 onClick={() => setIsFullScreen(!isFullScreen)}
-                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="p-2 text-gray-500 hover:text-black rounded-md hover:bg-gray-100"
                 title="Toggle fullscreen"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -240,12 +241,12 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
                 className={`p-2 rounded-full transition-all transform hover:scale-110 ${
                   isFavorite
                     ? 'text-red-500 hover:text-red-600'
-                    : 'text-gray-500 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400'
+                    : 'text-gray-500 hover:text-red-500'
                 }`}
                 title={isFavorite ? 'Remove from favorites (F)' : 'Add to favorites (F)'}
               >
                 {isFavorite ? (
-                  // Filled heart
+                  // Filled red heart
                   <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                   </svg>
@@ -262,7 +263,7 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
               {/* Close button */}
               <button
                 onClick={onClose}
-                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="p-2 text-gray-500 hover:text-black rounded-md hover:bg-gray-100"
                 title="Close (Esc)"
               >
                 <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -275,7 +276,7 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
           {/* Content */}
           <div className="flex flex-col lg:flex-row flex-1 min-h-0">
             {/* Image section */}
-            <div className="lg:w-2/3 relative bg-gray-50 dark:bg-gray-800 flex-shrink-0">
+            <div className="lg:w-2/3 relative bg-gray-50 flex-shrink-0">
               {allImages.length > 0 ? (
                 <div className="relative h-full min-h-[400px] lg:min-h-[600px]">
                   <div 
@@ -292,7 +293,7 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
                         target.src = '/placeholder-artwork.jpg';
                       }}
                       onDoubleClick={() => {
-                        // Double-click to favorite (like Instagram)
+                     
                         if (!isFavorite) {
                           toggleFavorite();
                         }
@@ -301,8 +302,8 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
 
                     {/* Double-tap hint */}
                     {showDoubleTapHint && !isFavorite && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black bg-opacity-20 transition-opacity">
-                        <div className="bg-black bg-opacity-50 text-white px-3 py-2 rounded-full text-sm flex items-center gap-2">
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity">
+                        <div className="bg-black bg-opacity-75 text-white px-3 py-2 rounded-full text-sm flex items-center gap-2">
                           <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
                               d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
@@ -314,7 +315,7 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
                     )}
                   </div>
 
-                  {/* Instagram-style heart animation */}
+                  {/* Heart animation */}
                   {showHeartAnimation && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                       <div className="animate-ping">
@@ -382,7 +383,7 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
                   )}
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-full min-h-[400px] text-gray-500 dark:text-gray-400">
+                <div className="flex items-center justify-center h-full min-h-[400px] text-gray-500">
                   <div className="text-center">
                     <svg className="h-16 w-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -398,74 +399,74 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
               <div className="space-y-6">
                 {/* Basic info */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  <h3 className="text-lg font-semibold text-black mb-4">
                     Artwork Details
                   </h3>
                   
                   <div className="space-y-3">
                     <div>
-                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Artist</dt>
-                      <dd className="text-sm text-gray-900 dark:text-white">{artistName}</dd>
+                      <dt className="text-sm font-medium text-gray-500">Artist</dt>
+                      <dd className="text-sm text-black">{artistName}</dd>
                     </div>
 
                     <div>
-                      <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Date</dt>
-                      <dd className="text-sm text-gray-900 dark:text-white">{artworkDate}</dd>
+                      <dt className="text-sm font-medium text-gray-500">Date</dt>
+                      <dd className="text-sm text-black">{artworkDate}</dd>
                     </div>
 
                     {artwork.medium && (
                       <div>
-                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Medium</dt>
-                        <dd className="text-sm text-gray-900 dark:text-white">{artwork.medium}</dd>
+                        <dt className="text-sm font-medium text-gray-500">Medium</dt>
+                        <dd className="text-sm text-black">{artwork.medium}</dd>
                       </div>
                     )}
 
                     {artwork.dimensions && (
                       <div>
-                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Dimensions</dt>
-                        <dd className="text-sm text-gray-900 dark:text-white">{artwork.dimensions}</dd>
+                        <dt className="text-sm font-medium text-gray-500">Dimensions</dt>
+                        <dd className="text-sm text-black">{artwork.dimensions}</dd>
                       </div>
                     )}
 
                     {artwork.department && (
                       <div>
-                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Department</dt>
-                        <dd className="text-sm text-gray-900 dark:text-white">{artwork.department}</dd>
+                        <dt className="text-sm font-medium text-gray-500">Department</dt>
+                        <dd className="text-sm text-black">{artwork.department}</dd>
                       </div>
                     )}
 
                     {artwork.culture && (
                       <div>
-                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Culture</dt>
-                        <dd className="text-sm text-gray-900 dark:text-white">{artwork.culture}</dd>
+                        <dt className="text-sm font-medium text-gray-500">Culture</dt>
+                        <dd className="text-sm text-black">{artwork.culture}</dd>
                       </div>
                     )}
 
                     {artwork.period && (
                       <div>
-                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Period</dt>
-                        <dd className="text-sm text-gray-900 dark:text-white">{artwork.period}</dd>
+                        <dt className="text-sm font-medium text-gray-500">Period</dt>
+                        <dd className="text-sm text-black">{artwork.period}</dd>
                       </div>
                     )}
 
                     {artwork.classification && (
                       <div>
-                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Classification</dt>
-                        <dd className="text-sm text-gray-900 dark:text-white">{artwork.classification}</dd>
+                        <dt className="text-sm font-medium text-gray-500">Classification</dt>
+                        <dd className="text-sm text-black">{artwork.classification}</dd>
                       </div>
                     )}
 
                     {artwork.accessionNumber && (
                       <div>
-                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Accession Number</dt>
-                        <dd className="text-sm text-gray-900 dark:text-white font-mono">{artwork.accessionNumber}</dd>
+                        <dt className="text-sm font-medium text-gray-500">Accession Number</dt>
+                        <dd className="text-sm text-black font-mono">{artwork.accessionNumber}</dd>
                       </div>
                     )}
 
                     {artwork.creditLine && (
                       <div>
-                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400">Credit Line</dt>
-                        <dd className="text-sm text-gray-900 dark:text-white">{artwork.creditLine}</dd>
+                        <dt className="text-sm font-medium text-gray-500">Credit Line</dt>
+                        <dd className="text-sm text-black">{artwork.creditLine}</dd>
                       </div>
                     )}
                   </div>
@@ -474,32 +475,32 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
                 {/* Description */}
                 {artwork.description && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Description</h4>
-                    <p className="text-sm text-gray-900 dark:text-white leading-relaxed">{artwork.description}</p>
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Description</h4>
+                    <p className="text-sm text-black leading-relaxed">{artwork.description}</p>
                   </div>
                 )}
 
                 {/* Geography */}
                 {(artwork.country || artwork.city || artwork.region) && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Geography</h4>
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Geography</h4>
                     <div className="space-y-2">
                       {artwork.country && (
                         <div>
-                          <dt className="text-xs font-medium text-gray-500 dark:text-gray-400">Country</dt>
-                          <dd className="text-sm text-gray-900 dark:text-white">{artwork.country}</dd>
+                          <dt className="text-xs font-medium text-gray-500">Country</dt>
+                          <dd className="text-sm text-black">{artwork.country}</dd>
                         </div>
                       )}
                       {artwork.region && (
                         <div>
-                          <dt className="text-xs font-medium text-gray-500 dark:text-gray-400">Region</dt>
-                          <dd className="text-sm text-gray-900 dark:text-white">{artwork.region}</dd>
+                          <dt className="text-xs font-medium text-gray-500">Region</dt>
+                          <dd className="text-sm text-black">{artwork.region}</dd>
                         </div>
                       )}
                       {artwork.city && (
                         <div>
-                          <dt className="text-xs font-medium text-gray-500 dark:text-gray-400">City</dt>
-                          <dd className="text-sm text-gray-900 dark:text-white">{artwork.city}</dd>
+                          <dt className="text-xs font-medium text-gray-500">City</dt>
+                          <dd className="text-sm text-black">{artwork.city}</dd>
                         </div>
                       )}
                     </div>
@@ -509,12 +510,12 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
                 {/* Tags */}
                 {artwork.tags && artwork.tags.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Tags</h4>
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Tags</h4>
                     <div className="flex flex-wrap gap-2">
                       {artwork.tags.map((tag, index) => (
                         <span
                           key={index}
-                          className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                          className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-black text-white"
                         >
                           #{tag}
                         </span>
@@ -526,13 +527,13 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
                 {/* Museum source */}
                 {artwork.museumSource && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Museum</h4>
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Museum</h4>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-900 dark:text-white capitalize">
+                      <span className="text-sm text-black capitalize">
                         {artwork.museumSource === 'met' ? 'Metropolitan Museum' : artwork.museumSource}
                       </span>
                       {artwork.isHighlight && (
-                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                        <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-white border border-black text-black">
                           Highlight
                         </span>
                       )}
@@ -541,13 +542,13 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
                 )}
 
                 {/* External links */}
-                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="pt-4 border-t border-black">
                   {artwork.objectURL && (
                     <a
                       href={artwork.objectURL}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
+                      className="inline-flex items-center gap-2 text-black hover:text-gray-600 underline text-sm font-medium"
                     >
                       View at Museum
                       <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -558,13 +559,13 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
                 </div>
 
                 {/* Keyboard shortcuts */}
-                <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Keyboard Shortcuts</h4>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                <div className="pt-4 border-t border-black">
+                  <h4 className="text-xs font-medium text-gray-500 mb-2">Keyboard Shortcuts</h4>
+                  <div className="text-xs text-gray-500 space-y-1">
                     <div>← → Navigate images</div>
                     <div className="flex items-center gap-1">
-                      <span>F Toggle favorite</span>
-                      <svg className="h-3 w-3 text-red-400" fill="currentColor" viewBox="0 0 24 24">
+                      <span>F Toggle favourite</span>
+                      <svg className="h-3 w-3 text-red-500" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                       </svg>
                     </div>

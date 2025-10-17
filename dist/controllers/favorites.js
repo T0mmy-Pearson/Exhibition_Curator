@@ -33,7 +33,8 @@ exports.getUserFavorites = getUserFavorites;
 const addToFavorites = async (req, res, next) => {
     try {
         const userId = req.user?.userId;
-        const { artworkData } = req.body;
+        // Accept either wrapped artworkData or direct fields for frontend compatibility
+        const artworkData = req.body.artworkData || req.body;
         if (!userId) {
             return res.status(401).json({
                 error: 'Unauthorized',

@@ -49,7 +49,8 @@ export default function SearchPage() {
         ? '/api/exhibitions/public'
         : '/api/exhibitions/search';
 
-      const response = await fetch(`http://localhost:9090${endpoint}?${params}`, {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'http://localhost:9090/api');
+      const response = await fetch(`${API_BASE_URL}${endpoint.replace('/api', '')}?${params}`, {
         headers: {
           'Content-Type': 'application/json',
           ...(token && !filters.publicOnly && { 'Authorization': `Bearer ${token}` })
@@ -83,7 +84,8 @@ export default function SearchPage() {
         ...(source !== 'all' && { departmentId: source })
       });
 
-      const response = await fetch(`http://localhost:9090/api/artworks/search?${params}`, {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'http://localhost:9090/api');
+      const response = await fetch(`${API_BASE_URL}/artworks/search?${params}`, {
         headers: {
           'Content-Type': 'application/json',
           ...(token && { 'Authorization': `Bearer ${token}` })
@@ -111,7 +113,8 @@ export default function SearchPage() {
       if (searchMode === 'exhibitions') {
         // Start with trending exhibitions
         try {
-          const response = await fetch('http://localhost:9090/api/exhibitions/trending?limit=12');
+          const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'http://localhost:9090/api');
+          const response = await fetch(`${API_BASE_URL}/exhibitions/trending?limit=12`);
           if (response.ok) {
             const data = await response.json();
             setExhibitions(data.exhibitions || []);

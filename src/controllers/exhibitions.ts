@@ -21,7 +21,18 @@ export const getExhibitions = async (req: AuthenticatedRequest, res: Response, n
     }
     
     const exhibitions = await exhibitionModel.fetchUserExhibitions(userId);
-    res.status(200).json({ exhibitions });
+    
+    // Enhance exhibitions with curator info
+    const user = await import('../models/User').then(m => m.User.findById(userId).select('username firstName lastName'));
+    const enhancedExhibitions = exhibitions.map((exhibition: any) => ({
+      ...exhibition.toObject(),
+      curator: {
+        username: user?.username,
+        fullName: user?.fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim()
+      }
+    }));
+    
+    res.status(200).json({ exhibitions: enhancedExhibitions });
   } catch (err) {
     next(err);
   }
@@ -32,7 +43,18 @@ export const getExhibitionById = async (req: Request, res: Response, next: NextF
     const { exhibition_id } = req.params;
     const userId = (req as any).user?.userId;
     const exhibition = await exhibitionModel.fetchExhibitionById(userId, exhibition_id);
-    res.status(200).json({ exhibition });
+    
+    // Enhance exhibition with curator info
+    const user = await import('../models/User').then(m => m.User.findById(userId).select('username firstName lastName'));
+    const enhancedExhibition = {
+      ...exhibition.toObject(),
+      curator: {
+        username: user?.username,
+        fullName: user?.fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim()
+      }
+    };
+    
+    res.status(200).json({ exhibition: enhancedExhibition });
   } catch (err) {
     next(err);
   }
@@ -73,7 +95,18 @@ export const createExhibition = async (req: AuthenticatedRequest, res: Response,
       tags,
       coverImageUrl
     });
-    res.status(201).json({ exhibition });
+    
+    // Enhance exhibition with curator info
+    const user = await import('../models/User').then(m => m.User.findById(userId).select('username firstName lastName'));
+    const enhancedExhibition = {
+      ...exhibition.toObject(),
+      curator: {
+        username: user?.username,
+        fullName: user?.fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim()
+      }
+    };
+    
+    res.status(201).json({ exhibition: enhancedExhibition });
   } catch (err) {
     next(err);
   }

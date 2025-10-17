@@ -6,6 +6,7 @@ import ArtworkList from './ArtworkList';
 import UserProfile from './UserProfile';
 import AuthModal from './AuthModal';
 import LoginPromptModal from './LoginPromptModal';
+import CreateExhibitionModal from './CreateExhibitionModal';
 import { useAuth } from '../contexts/AuthContext';
 import { useLoginPrompt } from '../hooks/useLoginPrompt';
 
@@ -17,6 +18,7 @@ export default function ArtworksPage() {
   const [key, setKey] = useState(0); // Force re-render of ArtworkList
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'login' | 'register'>('login');
+  const [showCreateExhibitionModal, setShowCreateExhibitionModal] = useState(false);
 
   const handleSearch = (newSearchTerm: string, newSource: string) => {
     setSearchTerm(newSearchTerm);
@@ -69,8 +71,7 @@ export default function ArtworksPage() {
           </button>
           <button
             onClick={() => loginPrompt.promptForExhibition(() => {
-              // Navigate to create exhibition page
-              console.log('Creating exhibition...');
+              setShowCreateExhibitionModal(true);
             })}
             className="inline-flex items-center px-4 py-2 bg-black hover:bg-gray-800 text-white rounded-lg text-sm font-medium transition-colors"
           >
@@ -103,6 +104,12 @@ export default function ArtworksPage() {
           onLoginSuccess={loginPrompt.handleLoginSuccess}
           trigger={loginPrompt.trigger}
           artworkTitle={loginPrompt.artworkTitle}
+        />
+
+        {/* Create Exhibition Modal */}
+        <CreateExhibitionModal
+          isOpen={showCreateExhibitionModal}
+          onClose={() => setShowCreateExhibitionModal(false)}
         />
       </div>
     </div>

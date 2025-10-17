@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { getUsers, getUserById, updateUser, deleteUser, getUserExhibitions, getUserFavorites, getUserProfile, updateUserProfile } from '../controllers/users';
+import { addToFavorites, removeFromFavorites } from '../controllers/favorites';
 import { authenticateToken } from '../middleware/auth';
 
 export const usersRouter = Router();
@@ -20,6 +21,11 @@ usersRouter.patch('/me/profile', updateUserProfile);
 // Current user's exhibitions and favorites (no user_id needed)
 usersRouter.get('/me/exhibitions', getUserExhibitions);
 usersRouter.get('/me/favorites', getUserFavorites);
+
+// Current user's favorites CRUD operations (for frontend compatibility)
+usersRouter.get('/favorites', getUserFavorites);
+usersRouter.post('/favorites', addToFavorites);
+usersRouter.delete('/favorites/:artwork_id', removeFromFavorites);
 
 // Other user's exhibitions and favorites (user_id required)
 usersRouter.get('/:user_id/exhibitions', getUserExhibitions);

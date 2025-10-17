@@ -64,11 +64,12 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
 
       setLoading(true);
       try {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'http://localhost:9090/api');
         const artworkId = artwork.objectID?.toString() || artwork.id;
         const method = isFavorite ? 'DELETE' : 'POST';
         const endpoint = isFavorite 
-          ? `http://localhost:9090/api/users/favorites/${artworkId}`
-          : 'http://localhost:9090/api/users/favorites';
+          ? `${API_BASE_URL}/users/favorites/${artworkId}`
+          : `${API_BASE_URL}/users/favorites`;
 
         const body = isFavorite ? undefined : JSON.stringify({
           artworkId: artworkId,
@@ -104,13 +105,13 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
 
   return (
     <div 
-      className={`bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 ${
+      className={`bg-white border border-black rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300 ${
         onClick ? 'cursor-pointer hover:scale-[1.02] transition-transform' : ''
       }`}
       onClick={handleClick}
     >
       {/* Image container */}
-      <div className="relative h-48 w-full bg-gray-200 dark:bg-gray-700 group">
+      <div className="relative h-48 w-full bg-gray-200 group">
         {imageUrl ? (
           <Image
             src={imageUrl}
@@ -120,7 +121,7 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
+          <div className="flex items-center justify-center h-full text-gray-400">
             <svg
               className="w-12 h-12"
               fill="none"
@@ -145,8 +146,8 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
             disabled={loading}
             className={`absolute top-3 right-3 p-2 rounded-full transition-all transform hover:scale-110 opacity-0 group-hover:opacity-100 backdrop-blur-sm ${
               isFavorite
-                ? 'text-red-500 bg-white/90 shadow-lg'
-                : 'text-white bg-black/50 hover:bg-black/70'
+                ? 'text-red-500 bg-white shadow-lg border border-black'
+                : 'text-white bg-black hover:bg-gray-800'
             }`}
             title={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
           >
@@ -170,32 +171,32 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
       {/* Content */}
       <div className="p-4">
         {/* Title */}
-        <h3 className="font-semibold text-lg text-gray-900 dark:text-white mb-2 line-clamp-2">
+        <h3 className="font-semibold text-lg text-black mb-2 line-clamp-2">
           {artwork.title}
         </h3>
 
         {/* Artist */}
         {artwork.artist && (
-          <p className="text-gray-600 dark:text-gray-300 mb-2 text-sm">
+          <p className="text-gray-600 mb-2 text-sm">
             by {artwork.artist}
           </p>
         )}
 
         {/* Date */}
         {artwork.date && (
-          <p className="text-gray-500 dark:text-gray-400 mb-3 text-sm">
+          <p className="text-gray-500 mb-3 text-sm">
             {artwork.date}
           </p>
         )}
 
         {/* Collection badge */}
         <div className="flex items-center justify-between">
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-black text-white">
             {getCollectionName(artwork.source)}
           </span>
           
           {artwork.isHighlight && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white border border-black text-black">
               ⭐ Highlight
             </span>
           )}
@@ -203,7 +204,7 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
 
         {/* Department */}
         {artwork.department && (
-          <p className="text-gray-500 dark:text-gray-400 mt-2 text-xs">
+          <p className="text-gray-500 mt-2 text-xs">
             {artwork.department}
           </p>
         )}
