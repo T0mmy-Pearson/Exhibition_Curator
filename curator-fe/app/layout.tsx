@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Exhibition Curator",
+  title: "The Curator",
   description: "Discover and curate artworks from world-renowned museums",
 };
 

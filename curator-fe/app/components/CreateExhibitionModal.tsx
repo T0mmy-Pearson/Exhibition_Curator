@@ -98,6 +98,8 @@ export default function CreateExhibitionModal({
       console.log('Creating exhibition with data:', exhibitionData);
       console.log('API endpoint:', `${API_BASE_URL}/exhibitions`);
       console.log('Auth token present:', !!token);
+      console.log('Token length:', token?.length);
+      console.log('Token starts with:', token?.substring(0, 10));
       console.log('Full headers:', {
         'Authorization': token ? `Bearer ${token.substring(0, 20)}...` : 'No token',
         'Content-Type': 'application/json'
@@ -123,16 +125,30 @@ export default function CreateExhibitionModal({
         console.error('Exhibition creation failed:', {
           status: response.status,
           statusText: response.statusText,
-          url: `${API_BASE_URL}/exhibitions`
+          url: `${API_BASE_URL}/exhibitions`,
+          headers: Object.fromEntries(response.headers.entries())
         });
         
+        // Try to get response text first, then parse as JSON
         let errorMessage = 'Failed to create exhibition';
         try {
-          const errorData = await response.json();
-          console.error('Error response:', errorData);
-          errorMessage = errorData.message || errorData.error || errorMessage;
-        } catch (parseError) {
-          console.error('Could not parse error response:', parseError);
+          const responseText = await response.text();
+          console.error('Raw response text:', responseText);
+          
+          if (responseText) {
+            try {
+              const errorData = JSON.parse(responseText);
+              console.error('Parsed error response:', errorData);
+              errorMessage = errorData.message || errorData.error || errorData.msg || errorMessage;
+            } catch (jsonError) {
+              console.error('Could not parse as JSON:', jsonError);
+              errorMessage = `Server error (${response.status}): ${responseText}`;
+            }
+          } else {
+            errorMessage = `Server error (${response.status}): ${response.statusText}`;
+          }
+        } catch (textError) {
+          console.error('Could not read response text:', textError);
           errorMessage = `Server error (${response.status}): ${response.statusText}`;
         }
         

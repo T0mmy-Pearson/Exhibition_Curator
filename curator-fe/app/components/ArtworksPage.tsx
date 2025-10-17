@@ -34,7 +34,7 @@ export default function ArtworksPage() {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h1 className="text-3xl font-bold text-black mb-2">
-                Exhibition Curator
+                The Curator
               </h1>
               <p className="text-lg text-black">
                 Discover and explore artworks from world-renowned museums

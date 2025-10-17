@@ -64,7 +64,7 @@ export default function RegisterForm({ onSwitchToLogin, onClose }: RegisterFormP
             Create Account
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            Join Exhibition Curator to start creating your collections
+            Join The Curator to start creating your collections
           </p>
         </div>
 

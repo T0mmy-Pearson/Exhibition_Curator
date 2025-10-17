@@ -1,4 +1,4 @@
-// API configuration for the Exhibition Curator frontend
+// API configuration for The Curator frontend
 
 // Get the API base URL from environment variables
 // For production, set NEXT_PUBLIC_API_URL=https://your-backend.railway.app

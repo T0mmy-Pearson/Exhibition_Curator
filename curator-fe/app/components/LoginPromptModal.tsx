@@ -56,7 +56,7 @@ export default function LoginPromptModal({
     switch (trigger) {
       case 'first-visit':
         return {
-          title: 'Welcome to Exhibition Curator! 🎨',
+          title: 'Welcome to The Curator! 🎨',
           message: 'Create an account to curate your own art collections, save favorites, and create personalized exhibitions.',
           benefits: [
             'Save artworks to your personal favorites',
@@ -113,7 +113,7 @@ export default function LoginPromptModal({
         };
       default:
         return {
-          title: 'Join Exhibition Curator',
+          title: 'Join The Curator',
           message: 'Sign in to unlock the full experience of art curation and discovery.',
           benefits: [
             'Save and organize artworks',

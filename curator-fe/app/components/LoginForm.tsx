@@ -41,7 +41,7 @@ export default function LoginForm({ onSwitchToRegister, onClose }: LoginFormProp
             Welcome Back
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            Sign in to your Exhibition Curator account
+            Sign in to your The Curator account
           </p>
         </div>
 

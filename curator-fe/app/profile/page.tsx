@@ -352,8 +352,8 @@ export default function ProfilePage() {
                     <span className="mr-2">❤️</span>
                     Recent Favorites
                   </h3>
-                  {favorites.slice(0, 3).map((fav) => (
-                    <div key={fav._id} className="flex items-center space-x-3 mb-2">
+                  {favorites.slice(0, 3).map((fav, index) => (
+                    <div key={fav._id || `favorite-${index}`} className="flex items-center space-x-3 mb-2">
                       <img 
                         src={fav.imageUrl} 
                         alt={fav.title}
@@ -383,8 +383,8 @@ export default function ProfilePage() {
                     <span className="mr-2">🖼️</span>
                     Recent Exhibitions
                   </h3>
-                  {exhibitions.slice(0, 3).map((ex) => (
-                    <div key={ex._id} className="mb-3 last:mb-0">
+                  {exhibitions.slice(0, 3).map((ex, index) => (
+                    <div key={ex._id || `exhibition-${index}`} className="mb-3 last:mb-0">
                       <p className="text-sm font-medium text-gray-900 dark:text-white">
                         {ex.title}
                       </p>
@@ -448,8 +448,8 @@ export default function ProfilePage() {
                 <LoadingSpinner />
               ) : favorites.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {favorites.map((favorite) => (
-                    <div key={favorite._id} className="relative group">
+                  {favorites.map((favorite, index) => (
+                    <div key={favorite._id || `favorite-full-${index}`} className="relative group">
                       <div className="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden">
                         <div className="relative h-48">
                           <img
@@ -536,8 +536,8 @@ export default function ProfilePage() {
                 <LoadingSpinner />
               ) : exhibitions.length > 0 ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {exhibitions.map((exhibition) => (
-                    <div key={exhibition._id} className="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6">
+                  {exhibitions.map((exhibition, index) => (
+                    <div key={exhibition._id || `exhibition-full-${index}`} className="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex-1">
                           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">

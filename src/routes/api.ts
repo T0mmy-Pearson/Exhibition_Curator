@@ -24,7 +24,7 @@ apiRouter.use('/favorites', favoritesRouter);
 
 apiRouter.get('/', (req, res) => {
   res.json({
-    message: 'Exhibition Curator API',
+    message: 'The Curator API',
     version: '1.0.0',
     endpoints: {
       auth: '/api/auth',

@@ -1,7 +1,7 @@
 {
-  "name": "exhibition-curator-api",
+  "name": "the-curator-api",
   "version": "1.0.0",
-  "description": "Backend API for the Exhibition Curator virtual museum platform",
+  "description": "Backend API for The Curator virtual museum platform",
   "main": "dist/server.js",
   "engines": {
     "node": ">=18.0.0"

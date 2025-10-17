@@ -31,9 +31,9 @@ export default function Navigation() {
   };
 
   const navLinks = [
-    { href: '/', label: 'Artworks', icon: '🎨' },
-    { href: '/search', label: 'Search', icon: '🔍' },
-    { href: '/exhibitions', label: 'Exhibitions', icon: '🖼️' },
+    { href: '/', label: 'Artworks', icon: '' },
+    { href: '/search', label: 'Search', icon: '' },
+    { href: '/exhibitions', label: 'Exhibitions', icon: '' },
   ];
 
   const userActions = user ? [
@@ -67,9 +67,9 @@ export default function Navigation() {
             {/* Logo and Brand */}
             <div className="flex items-center">
               <Link href="/" className="flex items-center space-x-2 group">
-                <div className="text-2xl group-hover:scale-110 transition-transform">🎨</div>
+                <div className="text-2xl group-hover:scale-110 transition-transform"></div>
                 <span className="text-xl font-bold text-gray-900 dark:text-white">
-                  Exhibition Curator
+                  The Curator
                 </span>
               </Link>
             </div>

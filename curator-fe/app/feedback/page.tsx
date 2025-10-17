@@ -48,7 +48,7 @@ export default function FeedbackPage() {
               Thank You!
             </h1>
             <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Your feedback has been received. We appreciate you taking the time to help us improve Exhibition Curator.
+              Your feedback has been received. We appreciate you taking the time to help us improve The Curator.
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Redirecting back to form...
@@ -69,7 +69,7 @@ export default function FeedbackPage() {
               Send Feedback
             </h1>
             <p className="text-gray-600 dark:text-gray-300">
-              We'd love to hear your thoughts on Exhibition Curator. Your feedback helps us improve!
+              We'd love to hear your thoughts on The Curator. Your feedback helps us improve!
             </p>
           </div>
 
