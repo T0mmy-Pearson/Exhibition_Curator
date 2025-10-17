@@ -33,7 +33,7 @@ export default function Navigation() {
   const navLinks = [
     { href: '/', label: 'Artworks', icon: '' },
     { href: '/search', label: 'Search', icon: '' },
-    { href: '/exhibitions', label: 'Exhibitions', icon: '' },
+    { href: '/search?mode=exhibitions', label: 'Exhibitions', icon: '' },
   ];
 
   const userActions = user ? [
@@ -160,7 +160,6 @@ export default function Navigation() {
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 
                                  hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
                       >
-                        <span>💬</span>
                         <span>Send Feedback</span>
                       </button>
                       
@@ -169,7 +168,6 @@ export default function Navigation() {
                         className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 
                                  hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
                       >
-                        <span>🆘</span>
                         <span>Report Issue</span>
                       </button>
                       
@@ -180,7 +178,6 @@ export default function Navigation() {
                         className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 
                                  hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-2"
                       >
-                        <span>🚪</span>
                         <span>Sign Out</span>
                       </button>
                     </div>
@@ -206,7 +203,7 @@ export default function Navigation() {
               )}
 
               {/* Test Links */}
-              <Link
+            {/*   <Link
                 href="/login-test"
                 className="px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 
                          dark:text-gray-400 dark:hover:text-gray-300 border border-gray-300 
@@ -214,7 +211,7 @@ export default function Navigation() {
                          transition-colors"
               >
                 🧪 Test
-              </Link>
+              </Link> */}
             </div>
 
             {/* Mobile menu button */}

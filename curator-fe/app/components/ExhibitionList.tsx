@@ -44,7 +44,25 @@ export default function ExhibitionList({
     );
   }
 
-  if (!exhibitions || exhibitions.length === 0) {
+  // Filter out any invalid exhibitions and remove duplicates
+  const validExhibitions = exhibitions
+    .filter(exhibition => exhibition && (exhibition._id || exhibition.title))
+    .filter((exhibition, index, self) => 
+      // Remove duplicates based on _id
+      index === self.findIndex(e => e._id === exhibition._id)
+    );
+  
+  const totalPages = Math.ceil(validExhibitions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentExhibitions = showPagination 
+    ? validExhibitions.slice(startIndex, endIndex)
+    : validExhibitions;
+
+
+
+  // Check for empty results AFTER filtering
+  if (!exhibitions || validExhibitions.length === 0) {
     return (
       <div className="text-center py-12">
         <div className="mx-auto h-12 w-12 text-gray-400 mb-4">
@@ -53,49 +71,35 @@ export default function ExhibitionList({
               d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
           </svg>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+        <h3 className="text-lg font-medium text-black mb-2">
           No exhibitions found
         </h3>
-        <p className="text-gray-600 dark:text-gray-400 mb-6">
-          Try adjusting your search criteria or browse all public exhibitions.
+        <p className="text-black mb-6">
+          Try adjusting your search criteria or create a new exhibition.
         </p>
-        <button
-          onClick={() => window.location.reload()}
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          Browse All Exhibitions
-        </button>
       </div>
     );
   }
-
-  // Calculate pagination
-  const totalPages = Math.ceil(exhibitions.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentExhibitions = showPagination 
-    ? exhibitions.slice(startIndex, endIndex)
-    : exhibitions;
 
   return (
     <div>
       {/* Results header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-2xl font-bold text-black">
             Exhibitions
           </h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-            {exhibitions.length} exhibition{exhibitions.length !== 1 ? 's' : ''} found
+          <p className="text-sm text-black mt-1">
+            {validExhibitions.length} exhibition{validExhibitions.length !== 1 ? 's' : ''} found
           </p>
         </div>
         
         {/* View toggle could go here */}
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600 dark:text-gray-400">
+          <span className="text-sm text-black">
             View:
           </span>
-          <button className="p-2 rounded-md bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400">
+          <button className="p-2 rounded-md bg-gray-100 text-black border border-black">
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
             </svg>
@@ -110,9 +114,9 @@ export default function ExhibitionList({
 
       {/* Exhibition grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-        {currentExhibitions.map((exhibition) => (
+        {currentExhibitions.map((exhibition, index) => (
           <ExhibitionCard
-            key={exhibition._id}
+            key={exhibition._id || `exhibition-${index}`}
             exhibition={exhibition}
             onClick={onExhibitionClick}
             showCurator={true}
@@ -147,10 +151,10 @@ export default function ExhibitionList({
                 <span className="font-medium">{startIndex + 1}</span>
                 {' '}to{' '}
                 <span className="font-medium">
-                  {Math.min(endIndex, exhibitions.length)}
+                  {Math.min(endIndex, validExhibitions.length)}
                 </span>
                 {' '}of{' '}
-                <span className="font-medium">{exhibitions.length}</span>
+                <span className="font-medium">{validExhibitions.length}</span>
                 {' '}results
               </p>
             </div>
@@ -170,7 +174,7 @@ export default function ExhibitionList({
                 
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                   <button
-                    key={page}
+                    key={`page-${page}`}
                     onClick={() => setCurrentPage(page)}
                     className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
                       currentPage === page

@@ -12,18 +12,43 @@ interface ArtworkListProps {
   searchTerm?: string;
   source?: 'all' | 'met' | 'rijks' | 'va';
   limit?: number;
+  artworks?: StandardizedArtwork[]; // Accept artworks as props
+  loading?: boolean; // Accept loading state as props
+  error?: string | null; // Accept error state as props
 }
 
 export default function ArtworkList({ 
   searchTerm = 'painting', 
   source = 'all', 
-  limit = 100 
+  limit = 100,
+  artworks: propArtworks,
+  loading: propLoading,
+  error: propError
 }: ArtworkListProps) {
-  const [artworks, setArtworks] = useState<StandardizedArtwork[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [artworks, setArtworks] = useState<StandardizedArtwork[]>(propArtworks || []);
+  const [loading, setLoading] = useState(propLoading !== undefined ? propLoading : true);
+  const [error, setError] = useState<string | null>(propError !== undefined ? propError : null);
   const [selectedArtwork, setSelectedArtwork] = useState<ArtworkDetails | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Update state when props change
+  useEffect(() => {
+    if (propArtworks !== undefined) {
+      setArtworks(propArtworks);
+    }
+  }, [propArtworks]);
+
+  useEffect(() => {
+    if (propLoading !== undefined) {
+      setLoading(propLoading);
+    }
+  }, [propLoading]);
+
+  useEffect(() => {
+    if (propError !== undefined) {
+      setError(propError);
+    }
+  }, [propError]);
 
   const fetchArtworks = useCallback(async () => {
     try {
@@ -113,8 +138,11 @@ export default function ArtworkList({
   };
 
   useEffect(() => {
-    fetchArtworks();
-  }, [fetchArtworks]);
+    // Only fetch artworks if they're not provided as props
+    if (propArtworks === undefined) {
+      fetchArtworks();
+    }
+  }, [fetchArtworks, propArtworks]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -127,7 +155,7 @@ export default function ArtworkList({
   if (artworks.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-400 dark:text-gray-500 mb-4">
+        <div className="text-black mb-4">
           <svg
             className="mx-auto h-12 w-12 mb-4"
             fill="none"
@@ -143,10 +171,10 @@ export default function ArtworkList({
             />
           </svg>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+        <h3 className="text-lg font-medium text-black mb-2">
           No Artworks Found
         </h3>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-black">
           Try adjusting your search terms or filters.
         </p>
       </div>
@@ -157,10 +185,10 @@ export default function ArtworkList({
     <div className="w-full">
       {/* Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        <h2 className="text-2xl font-bold text-black mb-2">
           Artworks Collection
         </h2>
-        <p className="text-gray-600 dark:text-gray-400">
+        <p className="text-black">
           Found {artworks.length} artwork{artworks.length !== 1 ? 's' : ''} 
           {searchTerm && ` for "${searchTerm}"`}
         </p>

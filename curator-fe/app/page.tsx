@@ -20,21 +20,16 @@ export default function Home() {
               href="/search"
               className="bg-white text-black px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
             >
-              🔍 Search Exhibitions
+              Search Exhibitions
             </Link>
             <button
               onClick={() => document.getElementById('artworks')?.scrollIntoView({ behavior: 'smooth' })}
               className="bg-transparent border-2 border-white text-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-black transition-colors"
             >
-              🎨 Browse Artworks
+               Browse Artworks
             </button>
           </div>
         </div>
-      </div>
-      
-      {/* Existing artworks page */}
-      <div id="artworks">
-        <ArtworksPage />
       </div>
     </div>
   );

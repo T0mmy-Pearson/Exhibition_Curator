@@ -10,7 +10,8 @@ export type LoginTrigger =
   | 'create-exhibition' 
   | 'manual' 
   | 'view-favorites'
-  | 'share-exhibition';
+  | 'share-exhibition'
+  | 'add-to-exhibition';
 
 interface LoginPromptModalProps {
   isOpen: boolean;
