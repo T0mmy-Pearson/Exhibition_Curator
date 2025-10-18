@@ -21,10 +21,10 @@ app.use(cors());
 // Rate limiting - different limits for development vs production
 const isDevelopment = process.env.NODE_ENV === 'development';
 
-// General rate limiter - more reasonable production limits for testing
+// General rate limiter - very permissive for testing
 const generalLimiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || (isDevelopment ? '60000' : '300000')), // 1min dev, 5min prod
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || (isDevelopment ? '1000' : '500')), // 1000 dev, 500 prod
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || (isDevelopment ? '60000' : '60000')), // 1min both
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || (isDevelopment ? '1000' : '1000')), // 1000 both
   message: {
     error: 'Too many requests',
     message: `Too many requests from this IP, please try again later.`,
@@ -34,8 +34,8 @@ const generalLimiter = rateLimit({
 
 // More permissive rate limiter for artwork/exhibition searches
 const searchLimiter = rateLimit({
-  windowMs: isDevelopment ? 30000 : 120000, // 30s dev, 2min prod
-  max: isDevelopment ? 500 : 200, // 500 dev, 200 prod
+  windowMs: isDevelopment ? 30000 : 30000, // 30s both
+  max: isDevelopment ? 500 : 500, // 500 both
   message: {
     error: 'Too many search requests',
     message: `Search rate limit exceeded. Please wait before searching again.`,
@@ -43,7 +43,8 @@ const searchLimiter = rateLimit({
   }
 });
 
-app.use(generalLimiter);
+// Temporarily disable rate limiting for testing
+// app.use(generalLimiter);
 
 // Body parsing middleware
 app.use(express.json());
