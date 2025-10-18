@@ -35,12 +35,7 @@ export const API_ENDPOINTS = {
   // User endpoints
   USERS: `${API_BASE_URL}/users`,
   USER_PROFILE: `${API_BASE_URL}/users/me/profile`,
-  USER_FAVORITES: `${API_BASE_URL}/favorites`,
   USER_EXHIBITIONS: `${API_BASE_URL}/users/me/exhibitions`,
-  
-  // Favorites endpoints
-  FAVORITES_ADD: `${API_BASE_URL}/favorites`,
-  FAVORITES_REMOVE: (artworkId: string) => `${API_BASE_URL}/favorites/${artworkId}`,
   
   // Exhibition endpoints  
   EXHIBITIONS: `${API_BASE_URL}/exhibitions`,

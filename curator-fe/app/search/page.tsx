@@ -310,12 +310,9 @@ export default function SearchPage() {
   }, [searchMode, isRateLimited]);
 
   const handleExhibitionClick = (exhibition: Exhibition) => {
-    // Navigate to exhibition detail view
-    if (exhibition.shareableLink) {
-      window.open(`/exhibitions/shared/${exhibition.shareableLink}`, '_blank');
-    } else {
-      router.push(`/exhibitions/${exhibition._id}`);
-    }
+    // Navigate to exhibition detail view using shareable link or ID
+    const identifier = exhibition.shareableLink || exhibition._id;
+    router.push(`/exhibitions/${identifier}`);
   };
 
 

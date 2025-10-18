@@ -81,26 +81,26 @@ export default function LoginTestPage() {
               Login Prompt Triggers
             </h2>
             
-            {/* Favorite Artwork */}
-            <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-              <h3 className="font-medium text-gray-900 dark:text-white mb-2">
-                ❤️ Favorite Artwork
+            {/* Add to Exhibition */}
+            <div className="bg-white p-6 rounded-lg shadow-md">
+              <h3 className="text-lg font-semibold mb-3 flex items-center">
+                🎨 Add to Exhibition
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                Trigger login prompt when trying to favorite an artwork
+              <p className="text-gray-600 mb-4">
+                Trigger login prompt when trying to add an artwork to exhibition
               </p>
-              <div className="flex flex-wrap gap-2">
+              <div className="space-y-2">
                 <button
-                  onClick={() => loginPrompt.promptForFavorite('Mona Lisa')}
-                  className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-sm font-medium transition-colors"
+                  onClick={() => loginPrompt.promptForAddToExhibition('Mona Lisa')}
+                  className="block w-full text-left px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded"
                 >
-                  ❤️ Favorite "Mona Lisa"
+                  🎨 Add "Mona Lisa" to Exhibition
                 </button>
                 <button
-                  onClick={() => loginPrompt.promptForFavorite('The Starry Night')}
-                  className="px-4 py-2 bg-pink-600 hover:bg-pink-700 text-white rounded-lg text-sm font-medium transition-colors"
+                  onClick={() => loginPrompt.promptForAddToExhibition('The Starry Night')}
+                  className="block w-full text-left px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded"
                 >
-                  ❤️ Favorite "The Starry Night"
+                  🎨 Add "The Starry Night" to Exhibition
                 </button>
               </div>
             </div>
@@ -120,24 +120,6 @@ export default function LoginTestPage() {
                 className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors"
               >
                 🖼️ Create New Exhibition
-              </button>
-            </div>
-
-            {/* View Favorites */}
-            <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
-              <h3 className="font-medium text-gray-900 dark:text-white mb-2">
-                📚 View Favorites
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-                Trigger login prompt when trying to access favorites
-              </p>
-              <button
-                onClick={() => loginPrompt.promptForViewFavorites(() => {
-                  alert('Navigating to favorites!');
-                })}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors"
-              >
-                📚 View My Favorites
               </button>
             </div>
 

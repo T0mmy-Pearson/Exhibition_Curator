@@ -6,46 +6,64 @@ import { useAuth } from '../../contexts/AuthContext';
 import Image from 'next/image';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ErrorDisplay from '../../components/ErrorDisplay';
+import { Splide, SplideSlide } from '@splidejs/react-splide';
+import '@splidejs/react-splide/css/core';
+import './splide-custom.css';
 
 interface Artwork {
-  _id: string;
   artworkId: string;
   title: string;
-  artist: string;
-  date: string;
-  medium: string;
-  imageUrl: string;
+  artist?: string;
+  date?: string;
+  medium?: string;
+  imageUrl?: string;
+  primaryImageSmall?: string;
+  additionalImages?: string[];
+  tags?: string[];
   museumSource: string;
+  isHighlight?: boolean;
+  addedAt: string;
 }
 
 interface Exhibition {
-  _id: string;
+  id: string;
   title: string;
   description: string;
-  curatorName: string;
+  curator: {
+    username: string;
+    fullName: string;
+  };
   artworks: Artwork[];
   isPublic: boolean;
+  shareableLink: string;
+  theme: string;
+  tags: string[];
+  artworksCount: number;
   createdAt: string;
   updatedAt: string;
 }
 
-export default function ExhibitionDetailPage() {
+export default function ExhibitionPage() {
   const params = useParams();
   const router = useRouter();
-  const { user, token } = useAuth();
+  const { token } = useAuth();
   const [exhibition, setExhibition] = useState<Exhibition | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [showInfo, setShowInfo] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
-  const exhibitionId = params.id as string;
+  const exhibitionIdentifier = params.id as string;
+
+  // Function to determine if the identifier is a MongoDB ObjectId or shareable link
+  const isMongoId = (str: string): boolean => {
+    return /^[0-9a-fA-F]{24}$/.test(str);
+  };
 
   useEffect(() => {
-    if (exhibitionId) {
+    if (exhibitionIdentifier) {
       fetchExhibition();
     }
-  }, [exhibitionId, token]);
+  }, [exhibitionIdentifier, token]);
 
   const fetchExhibition = async () => {
     try {
@@ -57,10 +75,18 @@ export default function ExhibitionDetailPage() {
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/exhibitions/${exhibitionId}`,
-        { headers }
-      );
+      let apiUrl: string;
+      
+      // Determine which API endpoint to use based on identifier format
+      if (isMongoId(exhibitionIdentifier)) {
+        // It's a MongoDB ObjectId, use the private endpoint
+        apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/exhibitions/${exhibitionIdentifier}`;
+      } else {
+        // It's a shareable link, use the shared endpoint
+        apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/exhibitions/shared/${exhibitionIdentifier}`;
+      }
+
+      const response = await fetch(apiUrl, { headers });
 
       if (!response.ok) {
         if (response.status === 404) {
@@ -78,76 +104,41 @@ export default function ExhibitionDetailPage() {
     }
   };
 
-  // Navigation functions for the carousel
-  const nextImage = () => {
-    if (exhibition?.artworks && exhibition.artworks.length > 0) {
-      setCurrentImageIndex((prev) => (prev + 1) % exhibition.artworks.length);
-    }
+  const splideOptions = {
+    type: 'loop',
+    perPage: 1,
+    perMove: 1,
+    gap: '2rem',
+    padding: { left: '5rem', right: '5rem' },
+    arrows: true,
+    pagination: true,
+    keyboard: 'focused',
+    focus: 'center',
+    trimSpace: false,
+    speed: 800,
+    easing: 'cubic-bezier(0.25, 1, 0.5, 1)',
+    pauseOnHover: true,
+    pauseOnFocus: true,
+    drag: true,
+    flickPower: 600,
+    live: true,
+    label: 'Exhibition Artwork Carousel',
+    role: 'region',
+    breakpoints: {
+      768: {
+        padding: { left: '2rem', right: '2rem' },
+        gap: '1rem',
+      },
+      480: {
+        padding: { left: '1rem', right: '1rem' },
+        gap: '0.5rem',
+      },
+    },
   };
-
-  const prevImage = () => {
-    if (exhibition?.artworks && exhibition.artworks.length > 0) {
-      setCurrentImageIndex((prev) => 
-        prev === 0 ? exhibition.artworks.length - 1 : prev - 1
-      );
-    }
-  };
-
-  const goToImage = (index: number) => {
-    setCurrentImageIndex(index);
-  };
-
-  // Touch/swipe state
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
-
-  // Minimum swipe distance required
-  const minSwipeDistance = 50;
-
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > minSwipeDistance;
-    const isRightSwipe = distance < -minSwipeDistance;
-
-    if (isLeftSwipe) {
-      nextImage();
-    } else if (isRightSwipe) {
-      prevImage();
-    }
-  };
-
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
-        prevImage();
-      } else if (e.key === 'ArrowRight') {
-        nextImage();
-      } else if (e.key === 'Escape') {
-        router.back();
-      } else if (e.key === 'i' || e.key === 'I') {
-        setShowInfo(prev => !prev);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [exhibition]);
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <LoadingSpinner size="large" />
       </div>
     );
@@ -155,7 +146,7 @@ export default function ExhibitionDetailPage() {
 
   if (error) {
     return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
         <ErrorDisplay 
           message={error}
           actionText="Go Back"
@@ -167,14 +158,14 @@ export default function ExhibitionDetailPage() {
 
   if (!exhibition || !exhibition.artworks || exhibition.artworks.length === 0) {
     return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center">
-        <div className="text-center text-white">
-          <h1 className="text-2xl font-bold mb-4">
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4 text-gray-800">
             {!exhibition ? 'Exhibition not found' : 'No artworks in this exhibition'}
           </h1>
           <button
             onClick={() => router.back()}
-            className="px-6 py-3 bg-white text-black rounded-md hover:bg-gray-100 transition-colors"
+            className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
           >
             ← Go Back
           </button>
@@ -183,150 +174,119 @@ export default function ExhibitionDetailPage() {
     );
   }
 
-  const currentArtwork = exhibition.artworks[currentImageIndex];
-
   return (
-    <div className="fixed inset-0 bg-black overflow-hidden">
-      {/* Header with close button and exhibition info */}
-      <div className="absolute top-0 left-0 right-0 z-20 bg-gradient-to-b from-black/70 to-transparent p-4">
-        <div className="flex items-center justify-between text-white">
-          <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between">
             <button
               onClick={() => router.back()}
-              className="p-2 rounded-full hover:bg-white/20 transition-colors"
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
             >
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div>
-              <h1 className="text-lg font-semibold">{exhibition.title}</h1>
-              <p className="text-sm text-gray-300">
-                {currentImageIndex + 1} of {exhibition.artworks.length} artworks
-              </p>
-            </div>
-          </div>
-          
-          <button
-            onClick={() => setShowInfo(!showInfo)}
-            className="p-2 rounded-full hover:bg-white/20 transition-colors"
-          >
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {/* Main image container */}
-      <div 
-        className="absolute inset-0 flex items-center justify-center"
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
-        <div className="relative w-full h-full flex items-center justify-center p-16">
-          {currentArtwork.imageUrl ? (
-            <div className="relative max-w-full max-h-full">
-              <Image
-                src={currentArtwork.imageUrl}
-                alt={currentArtwork.title}
-                width={1200}
-                height={800}
-                className="max-w-full max-h-full object-contain"
-                style={{ objectFit: 'contain' }}
-                priority
-              />
-            </div>
-          ) : (
-            <div className="flex items-center justify-center w-96 h-96 bg-gray-800 rounded-lg">
-              <div className="text-center text-gray-400">
-                <svg className="mx-auto h-16 w-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <p className="text-sm">Image unavailable</p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Navigation arrows */}
-        {exhibition.artworks.length > 1 && (
-          <>
-            <button
-              onClick={prevImage}
-              className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors backdrop-blur-sm"
-            >
-              <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
+              Back
             </button>
-
-            <button
-              onClick={nextImage}
-              className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors backdrop-blur-sm"
-            >
-              <svg className="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </>
-        )}
+            
+            <div className="text-center">
+              <h1 id="exhibition-title" className="text-2xl font-bold text-gray-900">{exhibition.title}</h1>
+              <p className="text-gray-600 mt-1">
+                Curated by {exhibition.curator.fullName} • {exhibition.artworks.length} artworks
+              </p>
+            </div>
+            
+            <div className="w-16"></div> {/* Spacer for balance */}
+          </div>
+          
+          {exhibition.description && (
+            <div className="mt-4 text-center">
+              <p className="text-gray-700 max-w-2xl mx-auto">{exhibition.description}</p>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Bottom thumbnail strip */}
-      {exhibition.artworks.length > 1 && (
-        <div className="absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/70 to-transparent p-4">
-          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            {exhibition.artworks.map((artwork, index) => (
-              <button
-                key={artwork._id}
-                onClick={() => goToImage(index)}
-                className={`relative flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                  index === currentImageIndex 
-                    ? 'border-white shadow-lg' 
-                    : 'border-gray-500 hover:border-gray-300'
-                }`}
-              >
-                {artwork.imageUrl ? (
-                  <Image
-                    src={artwork.imageUrl}
-                    alt={artwork.title}
-                    width={64}
-                    height={64}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-700 flex items-center justify-center">
-                    <svg className="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
+      {/* Carousel Section */}
+      <div className="max-w-7xl mx-auto px-4 py-8 relative">
+        {/* Slide Counter */}
+        <div className="absolute top-4 right-8 z-10 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-medium">
+          {currentSlide + 1} / {exhibition.artworks.length}
+        </div>
+
+        <Splide 
+          options={splideOptions} 
+          onMoved={(splide: any) => setCurrentSlide(splide.index)}
+          aria-labelledby="exhibition-title"
+        >
+          {exhibition.artworks.map((artwork, index) => (
+            <SplideSlide key={artwork.artworkId || `artwork-${index}`}>
+              <div className="flex flex-col items-center h-full">
+                <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-4xl">
+                  {(artwork.imageUrl || artwork.primaryImageSmall) ? (
+                    <div className="relative w-full" style={{ aspectRatio: '4/3' }}>
+                      <Image
+                        src={artwork.imageUrl || artwork.primaryImageSmall || ''}
+                        alt={`${artwork.title} by ${artwork.artist || 'Unknown artist'}`}
+                        fill
+                        className="object-contain rounded"
+                        sizes="(max-width: 768px) 90vw, (max-width: 1200px) 80vw, 70vw"
+                        priority={index === 0} // Only prioritize first image
+                        loading={index === 0 ? 'eager' : 'lazy'}
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center bg-gray-200 rounded" style={{ aspectRatio: '4/3' }}>
+                      <div className="text-center text-gray-500">
+                        <svg className="mx-auto h-16 w-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2z" />
+                        </svg>
+                        <p className="text-sm">Image unavailable</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </SplideSlide>
+          ))}
+        </Splide>
+      </div>
+
+      {/* Artwork Description Section */}
+      <div className="max-w-4xl mx-auto px-4 pb-8">
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          {exhibition.artworks.length > 0 && (
+            <>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">
+                {exhibition.artworks[currentSlide]?.title || 'Untitled'}
+              </h2>
+              {exhibition.artworks[currentSlide]?.artist && (
+                <p className="text-lg text-gray-700 mb-3">
+                  {exhibition.artworks[currentSlide].artist}
+                </p>
+              )}
+              <div className="space-y-2">
+                {exhibition.artworks[currentSlide]?.date && (
+                  <p className="text-gray-600">
+                    <span className="font-medium">Date:</span> {exhibition.artworks[currentSlide].date}
+                  </p>
                 )}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Artwork info overlay */}
-      {showInfo && (
-        <div className="absolute bottom-20 left-4 right-4 z-30 bg-black/80 backdrop-blur-sm rounded-lg p-6 text-white max-w-md mx-auto">
-          <h2 className="text-xl font-bold mb-2">{currentArtwork.title}</h2>
-          <p className="text-gray-300 mb-2">{currentArtwork.artist}</p>
-          {currentArtwork.date && (
-            <p className="text-gray-400 mb-2">{currentArtwork.date}</p>
-          )}
-          {currentArtwork.medium && (
-            <p className="text-gray-400 text-sm">{currentArtwork.medium}</p>
+                {exhibition.artworks[currentSlide]?.medium && (
+                  <p className="text-gray-600">
+                    <span className="font-medium">Medium:</span> {exhibition.artworks[currentSlide].medium}
+                  </p>
+                )}
+                <p className="text-gray-600">
+                  <span className="font-medium">Source:</span> {exhibition.artworks[currentSlide]?.museumSource || 'Unknown'}
+                </p>
+                <p className="text-gray-600">
+                  <span className="font-medium">ID:</span> {exhibition.artworks[currentSlide]?.artworkId}
+                </p>
+              </div>
+            </>
           )}
         </div>
-      )}
-
-      {/* Control hints */}
-      <div className="absolute bottom-4 right-4 z-20 text-white text-xs opacity-50">
-        <p className="hidden md:block">← → Navigate | I Info | Esc Exit</p>
-        <p className="md:hidden">Swipe to navigate | Tap (i) for info</p>
       </div>
     </div>
   );

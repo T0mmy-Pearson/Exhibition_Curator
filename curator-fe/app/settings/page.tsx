@@ -30,7 +30,6 @@ export default function SettingsPage() {
 
   const [privacy, setPrivacy] = useState({
     profilePublic: false,
-    showFavorites: true,
     showExhibitions: true,
     allowMessages: false
   });
@@ -199,13 +198,11 @@ export default function SettingsPage() {
                     <div>
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
                         {key === 'profilePublic' && 'Public Profile'}
-                        {key === 'showFavorites' && 'Show My Favorites'}
                         {key === 'showExhibitions' && 'Show My Exhibitions'}
                         {key === 'allowMessages' && 'Allow Messages'}
                       </div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">
                         {key === 'profilePublic' && 'Make your profile visible to other users'}
-                        {key === 'showFavorites' && 'Let others see your favorite artworks'}
                         {key === 'showExhibitions' && 'Share your curated exhibitions'}
                         {key === 'allowMessages' && 'Allow other users to send you messages'}
                       </div>

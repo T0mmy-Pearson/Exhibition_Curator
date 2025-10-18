@@ -74,16 +74,12 @@ export function useLoginPrompt() {
   }, [promptState.onSuccess, hideLoginPrompt]);
 
   // Specific trigger functions for different actions
-  const promptForFavorite = useCallback((artworkTitle?: string, onSuccess?: () => void) => {
-    return showLoginPrompt('favorite-artwork', { artworkTitle, onSuccess });
-  }, [showLoginPrompt]);
-
   const promptForExhibition = useCallback((onSuccess?: () => void) => {
     return showLoginPrompt('create-exhibition', { onSuccess });
   }, [showLoginPrompt]);
 
-  const promptForViewFavorites = useCallback((onSuccess?: () => void) => {
-    return showLoginPrompt('view-favorites', { onSuccess });
+  const promptForAddToExhibition = useCallback((artworkTitle?: string, onSuccess?: () => void) => {
+    return showLoginPrompt('add-to-exhibition', { artworkTitle, onSuccess });
   }, [showLoginPrompt]);
 
   const promptForShare = useCallback((onSuccess?: () => void) => {
@@ -113,9 +109,8 @@ export function useLoginPrompt() {
     handleLoginSuccess,
     
     // Specific triggers
-    promptForFavorite,
     promptForExhibition,
-    promptForViewFavorites,
+    promptForAddToExhibition,
     promptForShare,
     
     // Utility

@@ -55,10 +55,11 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
   const loginPrompt = useLoginPrompt();
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showHeartAnimation, setShowHeartAnimation] = useState(false);
   const [showDoubleTapHint, setShowDoubleTapHint] = useState(false);
+  const [showExhibitionModal, setShowExhibitionModal] = useState(false);
+  const [userExhibitions, setUserExhibitions] = useState<any[]>([]);
+  const [addingToExhibition, setAddingToExhibition] = useState(false);
 
   // Get all available images
   const allImages = artwork ? [
@@ -75,90 +76,100 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
   // Format artwork ID
   const artworkId = artwork?.artworkId || artwork?.objectID || '';
 
-  // Check if artwork is in user's favorites
+  // Reset image index when modal opens
   useEffect(() => {
-    const checkFavoriteStatus = async () => {
-      if (!user || !token || !artworkId) return;
-
-      try {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'http://localhost:9090/api');
-        const response = await fetch(`${API_BASE_URL}/users/favorites`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          const isInFavorites = data.favorites?.some((fav: any) => 
-            fav.artworkId === artworkId || fav.objectID === artworkId
-          );
-          setIsFavorite(isInFavorites);
-        }
-      } catch (error) {
-        console.error('Error checking favorite status:', error);
-      }
-    };
-
     if (isOpen && artwork) {
-      checkFavoriteStatus();
       setCurrentImageIndex(0);
     }
-  }, [isOpen, artwork, user, token, artworkId]);
+  }, [isOpen, artwork]);
 
-  // Handle favorite toggle with login prompt
-  const toggleFavorite = async () => {
-    // Use requireAuth to check login and prompt if needed
+  // Handle adding to exhibition
+  const handleAddToExhibitionClick = () => {
     loginPrompt.requireAuth(async () => {
-      if (!token || !artwork) return;
+      if (!token) return;
+      await fetchUserExhibitions();
+      setShowExhibitionModal(true);
+    }, 'add-to-exhibition', { artworkTitle: artwork?.title });
+  };
 
-      setLoading(true);
-      try {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'http://localhost:9090/api');
-        const method = isFavorite ? 'DELETE' : 'POST';
-        const endpoint = isFavorite 
-          ? `${API_BASE_URL}/users/favorites/${artworkId}`
-          : `${API_BASE_URL}/users/favorites`;
-
-        const body = isFavorite ? undefined : JSON.stringify({
-          artworkId: artworkId,
-          title: artwork.title,
-          artist: artistName,
-          date: artworkDate,
-          medium: artwork.medium,
-          imageUrl: artwork.imageUrl || artwork.primaryImage,
-          objectURL: artwork.objectURL,
-          department: artwork.department,
-          culture: artwork.culture,
-          museumSource: artwork.museumSource || 'unknown'
-        });
-
-        const response = await fetch(endpoint, {
-          method,
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          ...(body && { body })
-        });
-
-        if (response.ok) {
-          const newFavoriteState = !isFavorite;
-          setIsFavorite(newFavoriteState);
-          
-          // Show heart animation when favoriting (not unfavoriting)
-          if (newFavoriteState) {
-            setShowHeartAnimation(true);
-            setTimeout(() => setShowHeartAnimation(false), 1000);
-          }
+  const fetchUserExhibitions = async () => {
+    if (!token) return;
+    
+    try {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'http://localhost:9090/api');
+      const response = await fetch(`${API_BASE_URL}/exhibitions`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-      } catch (error) {
-        console.error('Error toggling favorite:', error);
-      } finally {
-        setLoading(false);
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUserExhibitions(data.exhibitions || []);
       }
-    }, 'favorite-artwork', { artworkTitle: artwork?.title });
+    } catch (error) {
+      console.error('Error fetching exhibitions:', error);
+    }
+  };
+
+  const addToExhibition = async (exhibitionId: string) => {
+    if (!token || !artwork) return;
+
+    setAddingToExhibition(true);
+    try {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'http://localhost:9090/api');
+      
+      const artworkData = {
+        artworkId: artworkId,
+        title: artwork.title,
+        artist: artistName,
+        date: artworkDate,
+        medium: artwork.medium,
+        department: artwork.department,
+        culture: artwork.culture,
+        dimensions: artwork.dimensions,
+        imageUrl: artwork.imageUrl || artwork.primaryImage,
+        primaryImageSmall: artwork.primaryImageSmall,
+        additionalImages: artwork.additionalImages || [],
+        tags: artwork.tags || [],
+        description: artwork.description,
+        museumSource: artwork.museumSource || 'met',
+        isHighlight: artwork.isHighlight || false
+      };
+
+      console.log('Adding artwork to exhibition:', {
+        exhibitionId,
+        artworkData,
+        endpoint: `${API_BASE_URL}/exhibitions/${exhibitionId}/artworks`
+      });
+
+      const response = await fetch(`${API_BASE_URL}/exhibitions/${exhibitionId}/artworks`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(artworkData)
+      });
+
+      if (response.ok) {
+        setShowExhibitionModal(false);
+        console.log('Artwork added to exhibition successfully');
+        // You could add success feedback here
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to add artwork to exhibition:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorText
+        });
+        throw new Error(`Failed to add artwork to exhibition: ${response.status} ${errorText}`);
+      }
+    } catch (error) {
+      console.error('Error adding to exhibition:', error);
+    } finally {
+      setAddingToExhibition(false);
+    }
   };
 
   // Handle keyboard navigation
@@ -184,16 +195,12 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
             );
           }
           break;
-        case 'f':
-        case 'F':
-          if (user) toggleFavorite();
-          break;
       }
     };
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [isOpen, allImages.length, user]);
+  }, [isOpen, allImages.length]);
 
   if (!isOpen || !artwork) return null;
 
@@ -234,30 +241,16 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
                 </svg>
               </button>
 
-              {/* Favorite button - Instagram style */}
+              {/* Add to Exhibition button */}
               <button
-                onClick={toggleFavorite}
-                disabled={loading}
-                className={`p-2 rounded-full transition-all transform hover:scale-110 ${
-                  isFavorite
-                    ? 'text-red-500 hover:text-red-600'
-                    : 'text-gray-500 hover:text-red-500'
-                }`}
-                title={isFavorite ? 'Remove from favorites (F)' : 'Add to favorites (F)'}
+                onClick={handleAddToExhibitionClick}
+                className="p-2 text-gray-500 hover:text-black rounded-md hover:bg-gray-100"
+                title="Add to Exhibition"
               >
-                {isFavorite ? (
-                  // Filled red heart
-                  <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                  </svg>
-                ) : (
-                  // Empty heart outline
-                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
-                    />
-                  </svg>
-                )}
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
               </button>
 
               {/* Close button */}
@@ -279,11 +272,7 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
             <div className="lg:w-2/3 relative bg-gray-50 flex-shrink-0">
               {allImages.length > 0 ? (
                 <div className="relative h-full min-h-[400px] lg:min-h-[600px]">
-                  <div 
-                    className="relative w-full h-full group"
-                    onMouseEnter={() => !isFavorite && setShowDoubleTapHint(true)}
-                    onMouseLeave={() => setShowDoubleTapHint(false)}
-                  >
+                  <div className="relative w-full h-full group">
                     <img
                       src={allImages[currentImageIndex]}
                       alt={artwork.title}
@@ -292,44 +281,8 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
                         const target = e.target as HTMLImageElement;
                         target.src = '/placeholder-artwork.jpg';
                       }}
-                      onDoubleClick={() => {
-                     
-                        if (!isFavorite) {
-                          toggleFavorite();
-                        }
-                      }}
                     />
-
-                    {/* Double-tap hint */}
-                    {showDoubleTapHint && !isFavorite && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity">
-                        <div className="bg-black bg-opacity-75 text-white px-3 py-2 rounded-full text-sm flex items-center gap-2">
-                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" 
-                            />
-                          </svg>
-                          Double-click to favorite
-                        </div>
-                      </div>
-                    )}
                   </div>
-
-                  {/* Heart animation */}
-                  {showHeartAnimation && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="animate-ping">
-                        <svg className="h-20 w-20 text-red-500" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                        </svg>
-                      </div>
-                      <div className="absolute">
-                        <svg className="h-16 w-16 text-red-500 animate-bounce" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                        </svg>
-                      </div>
-                    </div>
-                  )}
 
                   {/* Image navigation */}
                   {allImages.length > 1 && (
@@ -563,12 +516,6 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
                   <h4 className="text-xs font-medium text-gray-500 mb-2">Keyboard Shortcuts</h4>
                   <div className="text-xs text-gray-500 space-y-1">
                     <div>← → Navigate images</div>
-                    <div className="flex items-center gap-1">
-                      <span>F Toggle favourite</span>
-                      <svg className="h-3 w-3 text-red-500" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                      </svg>
-                    </div>
                     <div>Esc Close modal</div>
                   </div>
                 </div>
@@ -576,6 +523,68 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
             </div>
           </div>
         </div>
+        
+        {/* Exhibition Selection Modal */}
+        {showExhibitionModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60]" onClick={() => setShowExhibitionModal(false)}>
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-black">Add to Exhibition</h3>
+                <button
+                  onClick={() => setShowExhibitionModal(false)}
+                  className="text-black hover:text-gray-600"
+                >
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <p className="text-black mb-4">Select an exhibition to add "{artwork?.title}" to:</p>
+              
+              {userExhibitions.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-black mb-4">You don't have any exhibitions yet.</p>
+                  <button
+                    onClick={() => {
+                      setShowExhibitionModal(false);
+                      // You could add navigation to create exhibition here
+                    }}
+                    className="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800"
+                  >
+                    Create Your First Exhibition
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {userExhibitions.map((exhibition) => (
+                    <button
+                      key={exhibition._id}
+                      onClick={() => addToExhibition(exhibition._id)}
+                      disabled={addingToExhibition}
+                      className="w-full p-3 text-left border border-black rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    >
+                      <div className="font-medium text-black">{exhibition.title}</div>
+                      {exhibition.description && (
+                        <div className="text-sm text-gray-600 mt-1 line-clamp-2">{exhibition.description}</div>
+                      )}
+                      <div className="text-xs text-gray-500 mt-1">
+                        {exhibition.artworks?.length || 0} artworks • {exhibition.theme}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+              
+              {addingToExhibition && (
+                <div className="mt-4 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-black"></div>
+                  <span className="ml-2 text-black">Adding artwork...</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         
         {/* Login Prompt Modal */}
         <LoginPromptModal

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { useLoginPrompt } from '../hooks/useLoginPrompt';
 import LoginPromptModal from './LoginPromptModal';
+import CreateExhibitionModal from './CreateExhibitionModal';
 
 export default function Navigation() {
   const { user, logout } = useAuth();
@@ -13,6 +14,7 @@ export default function Navigation() {
   const loginPrompt = useLoginPrompt();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showCreateExhibitionModal, setShowCreateExhibitionModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = (e: React.FormEvent) => {
@@ -38,14 +40,12 @@ export default function Navigation() {
 
   const userActions = user ? [
     { 
-      label: 'My Favorites', 
-      icon: '', 
-      action: () => loginPrompt.promptForViewFavorites(() => router.push('/favorites'))
-    },
-    { 
       label: 'Create Exhibition', 
       icon: '', 
-      action: () => loginPrompt.promptForExhibition(() => router.push('/create-exhibition'))
+      action: () => loginPrompt.promptForExhibition(() => {
+        setShowUserMenu(false);
+        setShowCreateExhibitionModal(true);
+      })
     },
     { 
       label: 'My Profile', 
@@ -360,6 +360,18 @@ export default function Navigation() {
         onLoginSuccess={loginPrompt.handleLoginSuccess}
         trigger={loginPrompt.trigger}
         artworkTitle={loginPrompt.artworkTitle}
+      />
+
+      {/* Create Exhibition Modal */}
+      <CreateExhibitionModal
+        isOpen={showCreateExhibitionModal}
+        onClose={() => setShowCreateExhibitionModal(false)}
+        onSuccess={(exhibition) => {
+          setShowCreateExhibitionModal(false);
+          // Navigate to the new exhibition using shareable link or ID
+          const identifier = exhibition.shareableLink || exhibition._id;
+          router.push(`/exhibitions/${identifier}`);
+        }}
       />
     </>
   );

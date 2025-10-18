@@ -8,12 +8,15 @@ import { useImagePreloader } from '../hooks/useImagePreloader';
 
 export type LoginTrigger = 
   | 'first-visit' 
-  | 'favorite-artwork' 
   | 'create-exhibition' 
   | 'manual' 
-  | 'view-favorites'
   | 'share-exhibition'
   | 'add-to-exhibition';
+
+type LoginPromptType = 
+  | 'general' 
+  | 'create-exhibition' 
+  | 'add-to-exhibition'
 
 interface LoginPromptModalProps {
   isOpen: boolean;
@@ -97,24 +100,11 @@ export default function LoginPromptModal({
       case 'first-visit':
         return {
           title: 'Welcome to The Curator!',
-          message: 'Create an account to curate your own art collections, save favorites, and create your own exhibitions.',
+          message: 'Create an account to curate your own art collections and create your own exhibitions.',
           benefits: [
-            'Save artworks to your personal favorites',
+            'Discover artworks from world-class museums',
             'Create and share custom exhibitions',
             'Access exclusive curator features'
-          ]
-        };
-      case 'favorite-artwork':
-        return {
-          title: 'Save This Artwork',
-          message: artworkTitle
-            ? `Sign in to add "${artworkTitle}" to your favourites and build your personal collection.`
-            : 'Sign in to save artworks to your favourites and build your personal collection.',
-          benefits: [
-            'Save unlimited artworks',
-            'Organize your favorites by themes',
-            'Get notified about similar artworks',
-            'Create exhibitions from your favorites'
           ]
         };
       case 'create-exhibition':
@@ -128,15 +118,17 @@ export default function LoginPromptModal({
             'Collaborate with other art enthusiasts'
           ]
         };
-      case 'view-favorites':
+      case 'add-to-exhibition':
         return {
-          title: 'Your Art Collection',
-          message: 'Sign in to view and manage your saved artworks and favourite collections.',
+          title: 'Add to Exhibition',
+          message: artworkTitle
+            ? `Sign in to add "${artworkTitle}" to your exhibitions and share your curatorial vision.`
+            : 'Sign in to add artworks to your exhibitions and build amazing collections.',
           benefits: [
-            'Access your saved artworks',
-            'Organize by collections',
-            'Export your favorites',
-            'Share your taste with friends'
+            'Build thematic exhibitions',
+            'Organize artworks by themes',
+            'Share your curation skills',
+            'Collaborate with other curators'
           ]
         };
       case 'share-exhibition':
@@ -155,10 +147,10 @@ export default function LoginPromptModal({
           title: 'Join The Curator',
           message: 'Sign in to unlock the full experience of art curation and discovery.',
           benefits: [
-            'Save and organize artworks',
+            'Discover artworks from museums worldwide',
             'Create custom exhibitions',
             'Connect with art lovers',
-            'Discover new collections'
+            'Share your collections'
           ]
         };
     }

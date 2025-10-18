@@ -17,7 +17,6 @@ interface UserProfile {
   bio?: string;
   profileImageUrl?: string;
   joinDate: string;
-  favoriteCount: number;
   exhibitionCount: number;
 }
 
@@ -28,20 +27,9 @@ interface Exhibition {
   theme: string;
   artworks: Record<string, unknown>[];
   isPublic: boolean;
+  shareableLink?: string;
   createdAt: string;
   updatedAt: string;
-}
-
-interface FavoriteArtwork {
-  _id: string;
-  artworkId: string;
-  title: string;
-  artist: string;
-  date: string;
-  medium: string;
-  imageUrl: string;
-  museumSource: string;
-  addedAt: string;
 }
 
 export default function ProfilePage() {
@@ -49,12 +37,11 @@ export default function ProfilePage() {
   const router = useRouter();
   const loginPrompt = useLoginPrompt();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'favorites' | 'exhibitions' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'exhibitions' | 'settings'>('overview');
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [favorites, setFavorites] = useState<FavoriteArtwork[]>([]);
   const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
-  const [stats, setStats] = useState({ favorites: 0, exhibitions: 0, views: 0 });
+  const [stats, setStats] = useState({ exhibitions: 0, views: 0 });
 
   // Editable profile data
   const [profileData, setProfileData] = useState({
@@ -75,15 +62,6 @@ export default function ProfilePage() {
   const fetchUserData = useCallback(async () => {
     setLoading(true);
     try {
-      // Fetch favorites using the correct API endpoint
-      const favResponse = await fetch(API_ENDPOINTS.USER_FAVORITES, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (favResponse.ok) {
-        const favData = await favResponse.json();
-        setFavorites(favData.favorites || []);
-      }
-
       // Fetch user's exhibitions using the correct API endpoint
       const exhResponse = await fetch(API_ENDPOINTS.USER_EXHIBITIONS, {
         headers: { 'Authorization': `Bearer ${token}` }
@@ -96,7 +74,6 @@ export default function ProfilePage() {
       // Update stats after data is loaded
       setTimeout(() => {
         setStats({
-          favorites: favorites.length,
           exhibitions: exhibitions.length,
           views: Math.floor(Math.random() * 1000) + 100 // Mock data
         });
@@ -107,7 +84,7 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  }, [token, favorites.length, exhibitions.length]);
+  }, [token, exhibitions.length]);
 
   // Fetch user data
   useEffect(() => {
@@ -157,21 +134,6 @@ export default function ProfilePage() {
       }
     } catch (error) {
       console.error('Error deleting exhibition:', error);
-    }
-  };
-
-  const handleRemoveFavorite = async (artworkId: string) => {
-    try {
-      const response = await fetch(API_ENDPOINTS.FAVORITES_REMOVE(artworkId), {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (response.ok) {
-        setFavorites(prev => prev.filter(fav => fav.artworkId !== artworkId));
-      }
-    } catch (error) {
-      console.error('Error removing favorite:', error);
     }
   };
 
@@ -293,10 +255,6 @@ export default function ProfilePage() {
               {/* Stats */}
               <div className="flex space-x-8 text-center">
                 <div>
-                  <div className="text-2xl font-bold text-white dark:text-black">{stats.favorites}</div>
-                  <div className="text-sm text-gray-400 dark:text-gray-600">Favorites</div>
-                </div>
-                <div>
                   <div className="text-2xl font-bold text-white dark:text-black">{stats.exhibitions}</div>
                   <div className="text-sm text-gray-400 dark:text-gray-600">Exhibitions</div>
                 </div>
@@ -315,7 +273,6 @@ export default function ProfilePage() {
             <nav className="flex space-x-8 px-6">
               {[
                 { id: 'overview', label: 'Overview', icon: '' },
-                { id: 'favorites', label: `Favorites (${favorites.length})`, icon: '' },
                 { id: 'exhibitions', label: `Exhibitions (${exhibitions.length})`, icon: '' },
                 { id: 'settings', label: 'Settings', icon: '' }
               ].map((tab) => (
@@ -344,38 +301,8 @@ export default function ProfilePage() {
             <div className="p-6">
               <h2 className="text-2xl font-bold text-white dark:text-black mb-6">Account Overview</h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
-                {/* Recent Favorites */}
-                <div className="bg-black dark:bg-white rounded-lg p-4 border border-white dark:border-black">
-                  <h3 className="font-semibold text-white dark:text-black mb-3 flex items-center">
-                    Recent Favorites
-                  </h3>
-                  {favorites.slice(0, 3).map((fav, index) => (
-                    <div key={fav._id || `favorite-${index}`} className="flex items-center space-x-3 mb-2">
-                      <img 
-                        src={fav.imageUrl} 
-                        alt={fav.title}
-                        className="w-10 h-10 rounded object-cover border border-white dark:border-black"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/placeholder-artwork.jpg';
-                        }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white dark:text-black truncate">
-                          {fav.title}
-                        </p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500 truncate">
-                          {fav.artist}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                  {favorites.length === 0 && (
-                    <p className="text-sm text-gray-400 dark:text-gray-500">No favorites yet</p>
-                  )}
-                </div>
-
                 {/* Recent Exhibitions */}
                 <div className="bg-black dark:bg-white rounded-lg p-4 border border-white dark:border-black">
                   <h3 className="font-semibold text-white dark:text-black mb-3 flex items-center">
@@ -425,94 +352,6 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* Favorites Tab */}
-          {activeTab === 'favorites' && (
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-black dark:text-white">
-                  My Favorite Artworks ({favorites.length})
-                </h2>
-                <button
-                  onClick={() => router.push('/')}
-                  className="px-4 py-2 bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black rounded-lg font-medium transition-colors"
-                >
-                  <span className="mr-2">❤️</span>
-                  Find More Artworks
-                </button>
-              </div>
-
-              {loading ? (
-                <LoadingSpinner />
-              ) : favorites.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {favorites.map((favorite, index) => (
-                    <div key={favorite._id || `favorite-full-${index}`} className="relative group">
-                      <div className="bg-white dark:bg-black rounded-lg shadow-md overflow-hidden border border-black dark:border-white">
-                        <div className="relative h-48">
-                          <img
-                            src={favorite.imageUrl}
-                            alt={favorite.title}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = '/placeholder-artwork.jpg';
-                            }}
-                          />
-                          
-                          {/* Remove favorite button */}
-                          <button
-                            onClick={() => handleRemoveFavorite(favorite.artworkId)}
-                            className="absolute top-2 right-2 p-2 bg-red-600 hover:bg-red-700 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                            title="Remove from favorites"
-                          >
-                            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                          </button>
-                        </div>
-                        
-                        <div className="p-4">
-                          <h3 className="font-semibold text-black dark:text-white mb-1 line-clamp-2">
-                            {favorite.title}
-                          </h3>
-                          <p className="text-gray-600 dark:text-gray-300 text-sm mb-1">
-                            {favorite.artist}
-                          </p>
-                          <p className="text-gray-500 dark:text-gray-400 text-sm mb-2">
-                            {favorite.date}
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs bg-white dark:bg-black text-black dark:text-white px-2 py-1 rounded border border-black dark:border-white">
-                              {favorite.museumSource}
-                            </span>
-                            <span className="text-xs text-gray-400 dark:text-gray-500">
-                              Added {new Date(favorite.addedAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">💔</div>
-                  <h3 className="text-lg font-medium text-black dark:text-white mb-2">
-                    No Favorite Artworks Yet
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-6">
-                    Start exploring and add artworks to your favorites!
-                  </p>
-                  <button
-                    onClick={() => router.push('/')}
-                    className="px-6 py-3 bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black rounded-lg font-medium transition-colors"
-                  >
-                    Discover Artworks
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Exhibitions Tab */}
           {activeTab === 'exhibitions' && (
             <div className="p-6">
@@ -547,7 +386,11 @@ export default function ProfilePage() {
                         
                         <div className="flex items-center space-x-2 ml-4">
                           <button
-                            onClick={() => router.push(`/exhibitions/${exhibition._id}`)}
+                            onClick={() => {
+                              // Use shareable link if available, otherwise fall back to ID
+                              const identifier = exhibition.shareableLink || exhibition._id;
+                              router.push(`/exhibitions/${identifier}`);
+                            }}
                             className="p-2 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
                             title="View exhibition"
                           >
@@ -674,7 +517,7 @@ export default function ProfilePage() {
                     
                     <button
                       onClick={() => {
-                        if (confirm('Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your data including favorites and exhibitions.')) {
+                        if (confirm('Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your data including exhibitions.')) {
                           // Handle account deletion
                           logout();
                           router.push('/');

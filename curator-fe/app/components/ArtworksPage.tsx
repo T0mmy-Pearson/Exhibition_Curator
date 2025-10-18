@@ -58,18 +58,6 @@ export default function ArtworksPage() {
         {/* Quick Actions */}
         <div className="mb-6 flex flex-wrap gap-3">
           <button
-            onClick={() => loginPrompt.promptForViewFavorites(() => {
-              // Navigate to favorites page or show favorites
-              console.log('Navigating to favorites...');
-            })}
-            className="inline-flex items-center px-4 py-2 bg-white hover:bg-gray-100 border border-black text-black rounded-lg text-sm font-medium transition-colors"
-          >
-            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-            </svg>
-            My Favorites
-          </button>
-          <button
             onClick={() => loginPrompt.promptForExhibition(() => {
               setShowCreateExhibitionModal(true);
             })}
