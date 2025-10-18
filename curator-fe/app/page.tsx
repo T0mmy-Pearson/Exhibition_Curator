@@ -1,9 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import ArtworksPage from "./components/ArtworksPage";
+import LoginPromptModal from './components/LoginPromptModal';
 
 export default function Home() {
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+
   return (
     <div>
       {/* Hero section with search navigation */}
@@ -31,6 +34,24 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* Test button to show welcome modal */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
+        <button
+          onClick={() => setShowWelcomeModal(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+        >
+          Show Welcome Modal
+        </button>
+      </div>
+
+      {/* Welcome Modal */}
+      <LoginPromptModal
+        isOpen={showWelcomeModal}
+        onClose={() => setShowWelcomeModal(false)}
+        trigger="first-visit"
+        onLoginSuccess={() => setShowWelcomeModal(false)}
+      />
     </div>
   );
 }

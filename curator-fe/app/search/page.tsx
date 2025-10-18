@@ -121,12 +121,22 @@ export default function SearchPage() {
         // Handle rate limiting specifically
         if (response.status === 429) {
           setIsRateLimited(true);
-          setError('Too many requests from server. Waiting 10 seconds before allowing new searches.');
-          // Much longer wait time when we get rate limited
-          setTimeout(() => {
-            setIsRateLimited(false);
-            setError(null);
-          }, 10000);
+          try {
+            const errorData = JSON.parse(errorText);
+            const retryAfter = errorData.retryAfter || 10;
+            setError(`${errorData.message || 'Rate limit exceeded'}. Please wait ${retryAfter} seconds.`);
+            setTimeout(() => {
+              setIsRateLimited(false);
+              setError(null);
+            }, retryAfter * 1000);
+          } catch {
+            // Fallback if error isn't JSON
+            setError('Too many requests from server. Waiting 10 seconds before allowing new searches.');
+            setTimeout(() => {
+              setIsRateLimited(false);
+              setError(null);
+            }, 10000);
+          }
           return;
         }
         
@@ -194,11 +204,22 @@ export default function SearchPage() {
       if (!response.ok) {
         if (response.status === 429) {
           setIsRateLimited(true);
-          setError('Too many requests from server. Waiting 10 seconds before allowing new searches.');
-          setTimeout(() => {
-            setIsRateLimited(false);
-            setError(null);
-          }, 10000);
+          try {
+            const errorText = await response.text();
+            const errorData = JSON.parse(errorText);
+            const retryAfter = errorData.retryAfter || 10;
+            setError(`${errorData.message || 'Rate limit exceeded'}. Please wait ${retryAfter} seconds.`);
+            setTimeout(() => {
+              setIsRateLimited(false);
+              setError(null);
+            }, retryAfter * 1000);
+          } catch {
+            setError('Too many requests from server. Waiting 10 seconds before allowing new searches.');
+            setTimeout(() => {
+              setIsRateLimited(false);
+              setError(null);
+            }, 10000);
+          }
           return;
         }
         throw new Error('Failed to search artworks');

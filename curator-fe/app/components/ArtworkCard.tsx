@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { StandardizedArtwork } from '../types/artwork';
 import { useAuth } from '../contexts/AuthContext';
 import { useLoginPrompt } from '../hooks/useLoginPrompt';
@@ -19,10 +19,61 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
   const [isFavorite, setIsFavorite] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showExhibitionModal, setShowExhibitionModal] = useState(false);
+  const [favoritesLoaded, setFavoritesLoaded] = useState(false);
   const [userExhibitions, setUserExhibitions] = useState<any[]>([]);
   const [addingToExhibition, setAddingToExhibition] = useState(false);
+  
   // Get the appropriate image URL (prefer small image for list view)
   const imageUrl = artwork.smallImageUrl || artwork.imageUrl;
+
+  // Check if this artwork is already in favorites when component loads
+  useEffect(() => {
+    const checkFavoriteStatus = async () => {
+      if (!token || !artwork || favoritesLoaded) {
+        console.log('Skipping favorite check:', { hasToken: !!token, hasArtwork: !!artwork, favoritesLoaded });
+        return;
+      }
+
+      try {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 
+          (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'https://exhibition-curator-backend.onrender.com/api');
+        
+        console.log('Checking favorite status for:', artwork.title);
+        console.log('API URL:', `${API_BASE_URL}/favorites`);
+        
+        const response = await fetch(`${API_BASE_URL}/favorites`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        console.log('Favorites response status:', response.status);
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Favorites data:', data);
+          const artworkId = artwork.objectID?.toString() || artwork.id;
+          
+          // Check if this artwork is in the favorites
+          const isAlreadyFavorite = data.favorites?.some((fav: any) => 
+            fav.artworkId === artworkId
+          );
+          
+          console.log('Is already favorite:', isAlreadyFavorite, 'for artwork ID:', artworkId);
+          setIsFavorite(isAlreadyFavorite || false);
+        } else {
+          console.error('Failed to fetch favorites:', response.status, response.statusText);
+        }
+      } catch (error) {
+        console.error('Error checking favorite status:', error);
+      } finally {
+        setFavoritesLoaded(true);
+      }
+    };
+
+    checkFavoriteStatus();
+  }, [token, artwork, favoritesLoaded]);
   
   // Get collection name from source
   const getCollectionName = (source: string) => {
@@ -62,30 +113,55 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent card click
     
+    console.log('Favorite button clicked for:', artwork?.title);
+    console.log('Current favorite status:', isFavorite);
+    console.log('Has token:', !!token);
+    
     // Use requireAuth to check login and prompt if needed
     loginPrompt.requireAuth(async () => {
-      if (!token || !artwork) return;
+      if (!token || !artwork) {
+        console.log('Missing token or artwork');
+        return;
+      }
 
       setLoading(true);
       try {
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'http://localhost:9090/api');
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 
+          (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'https://exhibition-curator-backend.onrender.com/api');
+        
         const artworkId = artwork.objectID?.toString() || artwork.id;
         const method = isFavorite ? 'DELETE' : 'POST';
         const endpoint = isFavorite 
-          ? `${API_BASE_URL}/users/favorites/${artworkId}`
-          : `${API_BASE_URL}/users/favorites`;
+          ? `${API_BASE_URL}/favorites/${artworkId}`
+          : `${API_BASE_URL}/favorites`;
 
-        const body = isFavorite ? undefined : JSON.stringify({
+        const requestPayload = {
           artworkId: artworkId,
+          source: artwork.source || 'met',
           title: artwork.title,
           artist: artwork.artist,
+          artistBio: artwork.artistBio,
+          culture: artwork.culture,
           date: artwork.date,
           medium: artwork.medium,
-          imageUrl: artwork.imageUrl,
+          dimensions: artwork.dimensions,
           department: artwork.department,
-          culture: artwork.culture,
-          museumSource: artwork.source || 'unknown'
-        });
+          description: artwork.description,
+          imageUrl: artwork.imageUrl,
+          smallImageUrl: artwork.smallImageUrl,
+          additionalImages: artwork.additionalImages,
+          museumUrl: artwork.museumUrl,
+          isHighlight: artwork.isHighlight,
+          isPublicDomain: artwork.isPublicDomain,
+          tags: artwork.tags
+        };
+
+        const body = isFavorite ? undefined : JSON.stringify(requestPayload);
+
+        console.log('Making request to:', endpoint);
+        console.log('Method:', method);
+        console.log('Request payload object:', requestPayload);
+        console.log('Body (stringified):', body);
 
         const response = await fetch(endpoint, {
           method,
@@ -96,8 +172,15 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
           ...(body && { body })
         });
 
+        console.log('Response status:', response.status);
+        const responseData = await response.text();
+        console.log('Response data:', responseData);
+
         if (response.ok) {
+          console.log('Successfully toggled favorite');
           setIsFavorite(!isFavorite);
+        } else {
+          console.error('Failed to toggle favorite:', response.status, responseData);
         }
       } catch (error) {
         console.error('Error toggling favorite:', error);

@@ -39,66 +39,39 @@ export default function Navigation() {
   const userActions = user ? [
     { 
       label: 'My Favorites', 
-      icon: '❤️', 
+      icon: '', 
       action: () => loginPrompt.promptForViewFavorites(() => router.push('/favorites'))
     },
     { 
       label: 'Create Exhibition', 
-      icon: '➕', 
+      icon: '', 
       action: () => loginPrompt.promptForExhibition(() => router.push('/create-exhibition'))
     },
     { 
       label: 'My Profile', 
-      icon: '👤', 
+      icon: '', 
       action: () => router.push('/profile')
     },
     { 
       label: 'Settings', 
-      icon: '⚙️', 
+      icon: '', 
       action: () => router.push('/settings')
     },
   ] : [];
 
   return (
     <>
-      <nav className="bg-white dark:bg-gray-900 shadow-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
+      <nav className="bg-white shadow-lg border-b border-black sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             {/* Logo and Brand */}
             <div className="flex items-center">
               <Link href="/" className="flex items-center space-x-2 group">
-                <div className="text-2xl group-hover:scale-110 transition-transform"></div>
-                <span className="text-xl font-bold text-gray-900 dark:text-white">
+                <div className="text-10xl group-hover:scale-150 transition-transform"></div>
+                <span className="text-xl text-black">
                   The Curator
                 </span>
               </Link>
-            </div>
-
-            {/* Desktop Search */}
-            <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
-              <form onSubmit={handleSearch} className="w-full">
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search artworks, artists, museums..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
-                             bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white 
-                             focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                             placeholder-gray-500 dark:placeholder-gray-400"
-                  />
-                  <svg 
-                    className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-              </form>
             </div>
 
             {/* Desktop Navigation */}
@@ -109,8 +82,8 @@ export default function Navigation() {
                   key={link.href}
                   href={link.href}
                   className="flex items-center space-x-1 px-3 py-2 text-sm font-medium 
-                           text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400
-                           hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+                           text-black hover:text-gray-600
+                           hover:bg-gray-100 rounded-md transition-colors"
                 >
                   <span>{link.icon}</span>
                   <span>{link.label}</span>
@@ -123,10 +96,10 @@ export default function Navigation() {
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
                     className="flex items-center space-x-2 px-3 py-2 text-sm font-medium 
-                             text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400
-                             hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+                             text-black hover:text-gray-600
+                             hover:bg-gray-100 rounded-md transition-colors"
                   >
-                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                    <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center text-white text-sm font-bold">
                       {(user.firstName?.[0] || user.username?.[0] || 'U').toUpperCase()}
                     </div>
                     <span>{user.firstName || user.username}</span>
@@ -137,7 +110,7 @@ export default function Navigation() {
 
                   {/* User Dropdown */}
                   {showUserMenu && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50">
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-black py-2 z-50">
                       {userActions.map((action, index) => (
                         <button
                           key={index}
@@ -145,38 +118,38 @@ export default function Navigation() {
                             action.action();
                             setShowUserMenu(false);
                           }}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 
-                                   hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
+                          className="w-full text-left px-4 py-2 text-sm text-black 
+                                   hover:bg-gray-100 flex items-center space-x-2"
                         >
                           <span>{action.icon}</span>
                           <span>{action.label}</span>
                         </button>
                       ))}
                       
-                      <hr className="my-2 border-gray-200 dark:border-gray-700" />
+                      <hr className="my-2 border-black" />
                       
                       <button
                         onClick={() => router.push('/feedback')}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 
-                                 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
+                        className="w-full text-left px-4 py-2 text-sm text-black 
+                                 hover:bg-gray-100 flex items-center space-x-2"
                       >
                         <span>Send Feedback</span>
                       </button>
                       
                       <button
                         onClick={() => router.push('/support')}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 
-                                 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center space-x-2"
+                        className="w-full text-left px-4 py-2 text-sm text-black 
+                                 hover:bg-gray-100 flex items-center space-x-2"
                       >
                         <span>Report Issue</span>
                       </button>
                       
-                      <hr className="my-2 border-gray-200 dark:border-gray-700" />
+                      <hr className="my-2 border-black" />
                       
                       <button
                         onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 
-                                 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-2"
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 
+                                 hover:bg-red-50 flex items-center space-x-2"
                       >
                         <span>Sign Out</span>
                       </button>
@@ -187,14 +160,14 @@ export default function Navigation() {
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={() => loginPrompt.showLoginPrompt('manual')}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 
-                             hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    className="px-4 py-2 text-sm font-medium text-black 
+                             hover:text-gray-600 transition-colors"
                   >
                     Sign In
                   </button>
                   <button
                     onClick={() => loginPrompt.showLoginPrompt('manual')}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 
+                    className="px-4 py-2 text-sm font-medium text-white bg-black hover:bg-gray-800 
                              rounded-md transition-colors"
                   >
                     Sign Up
@@ -218,8 +191,8 @@ export default function Navigation() {
             <div className="md:hidden flex items-center">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white 
-                         focus:outline-none focus:text-gray-900 dark:focus:text-white p-2"
+                className="text-black hover:text-gray-600 
+                         focus:outline-none focus:text-black p-2"
               >
                 <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   {isMenuOpen ? (
@@ -235,7 +208,7 @@ export default function Navigation() {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+          <div className="md:hidden border-t border-black bg-white">
             <div className="px-4 py-3 space-y-3">
               {/* Mobile Search */}
               <form onSubmit={handleSearch}>
@@ -245,12 +218,12 @@ export default function Navigation() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search artworks..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
-                             bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white 
-                             focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-2 border border-black rounded-lg 
+                             bg-white text-black 
+                             focus:ring-2 focus:ring-black focus:border-transparent"
                   />
                   <svg 
-                    className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+                    className="absolute left-3 top-2.5 h-5 w-5 text-gray-600"
                     fill="none" 
                     stroke="currentColor" 
                     viewBox="0 0 24 24"
@@ -269,8 +242,8 @@ export default function Navigation() {
                     href={link.href}
                     onClick={() => setIsMenuOpen(false)}
                     className="flex items-center space-x-2 px-3 py-2 text-base font-medium 
-                             text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400
-                             hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+                             text-black hover:text-gray-600
+                             hover:bg-gray-100 rounded-md transition-colors"
                   >
                     <span>{link.icon}</span>
                     <span>{link.label}</span>
@@ -280,16 +253,16 @@ export default function Navigation() {
 
               {/* Mobile User Section */}
               {user ? (
-                <div className="pt-3 border-t border-gray-200 dark:border-gray-700 space-y-2">
+                <div className="pt-3 border-t border-black space-y-2">
                   <div className="flex items-center space-x-3 px-3 py-2">
-                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                    <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white font-bold">
                       {(user.firstName?.[0] || user.username?.[0] || 'U').toUpperCase()}
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      <div className="text-sm font-medium text-black">
                         {user.firstName || user.username}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                      <div className="text-xs text-gray-500">
                         {user.email}
                       </div>
                     </div>
@@ -303,8 +276,8 @@ export default function Navigation() {
                         setIsMenuOpen(false);
                       }}
                       className="w-full text-left flex items-center space-x-2 px-3 py-2 text-base 
-                               text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400
-                               hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+                               text-black hover:text-gray-600
+                               hover:bg-gray-100 rounded-md transition-colors"
                     >
                       <span>{action.icon}</span>
                       <span>{action.label}</span>
@@ -317,8 +290,8 @@ export default function Navigation() {
                       setIsMenuOpen(false);
                     }}
                     className="w-full text-left flex items-center space-x-2 px-3 py-2 text-base 
-                             text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400
-                             hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+                             text-black hover:text-gray-600
+                             hover:bg-gray-100 rounded-md transition-colors"
                   >
                     <span>💬</span>
                     <span>Send Feedback</span>
@@ -330,8 +303,8 @@ export default function Navigation() {
                       setIsMenuOpen(false);
                     }}
                     className="w-full text-left flex items-center space-x-2 px-3 py-2 text-base 
-                             text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400
-                             hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
+                             text-black hover:text-gray-600
+                             hover:bg-gray-100 rounded-md transition-colors"
                   >
                     <span>🆘</span>
                     <span>Report Issue</span>
@@ -343,7 +316,7 @@ export default function Navigation() {
                       setIsMenuOpen(false);
                     }}
                     className="w-full text-left flex items-center space-x-2 px-3 py-2 text-base 
-                             text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 
+                             text-red-600 hover:bg-red-50 
                              rounded-md transition-colors"
                   >
                     <span>🚪</span>
@@ -351,15 +324,15 @@ export default function Navigation() {
                   </button>
                 </div>
               ) : (
-                <div className="pt-3 border-t border-gray-200 dark:border-gray-700 space-y-2">
+                <div className="pt-3 border-t border-black space-y-2">
                   <button
                     onClick={() => {
                       loginPrompt.showLoginPrompt('manual');
                       setIsMenuOpen(false);
                     }}
-                    className="w-full text-center px-4 py-2 text-base font-medium text-gray-700 dark:text-gray-300 
-                             border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 
-                             dark:hover:bg-gray-800 transition-colors"
+                    className="w-full text-center px-4 py-2 text-base font-medium text-black 
+                             border border-black rounded-md hover:bg-gray-100 
+                             transition-colors"
                   >
                     Sign In
                   </button>
@@ -368,8 +341,8 @@ export default function Navigation() {
                       loginPrompt.showLoginPrompt('manual');
                       setIsMenuOpen(false);
                     }}
-                    className="w-full text-center px-4 py-2 text-base font-medium text-white bg-blue-600 
-                             hover:bg-blue-700 rounded-md transition-colors"
+                    className="w-full text-center px-4 py-2 text-base font-medium text-white bg-black 
+                             hover:bg-gray-800 rounded-md transition-colors"
                   >
                     Sign Up
                   </button>

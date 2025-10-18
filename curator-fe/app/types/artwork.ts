@@ -1,6 +1,7 @@
 // Standardized artwork interface matching the backend
 export interface StandardizedArtwork {
   id: string; // Format: "met:{objectID}" or "rijks:{objectNumber}" or "va:{systemNumber}"
+  artworkId?: string; // Optional: original backend artworkId for internal operations
   source: 'met' | 'rijks' | 'va';
   title: string;
   artist: string;

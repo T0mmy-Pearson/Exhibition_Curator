@@ -25,9 +25,31 @@ export const getUserFavorites = async (req: AuthenticatedRequest, res: Response,
       });
     }
 
+    // Transform data to match frontend StandardizedArtwork interface
+    const transformedFavorites = user.favoriteArtworks.map(artwork => ({
+      id: artwork.artworkId, // Map artworkId to id for frontend compatibility
+      source: artwork.museumSource || 'met',
+      title: artwork.title,
+      artist: artwork.artist || 'Unknown Artist',
+      culture: artwork.culture,
+      date: artwork.date,
+      medium: artwork.medium,
+      dimensions: artwork.dimensions,
+      department: artwork.department,
+      description: artwork.description,
+      imageUrl: artwork.imageUrl || artwork.primaryImageSmall,
+      smallImageUrl: artwork.primaryImageSmall,
+      additionalImages: artwork.additionalImages,
+      museumUrl: artwork.objectURL,
+      isHighlight: artwork.isHighlight,
+      tags: artwork.tags,
+      // Keep original artworkId for internal operations
+      artworkId: artwork.artworkId
+    }));
+
     res.status(200).json({
-      favorites: user.favoriteArtworks,
-      total: user.favoriteArtworks.length
+      favorites: transformedFavorites,
+      total: transformedFavorites.length
     });
 
   } catch (err) {
