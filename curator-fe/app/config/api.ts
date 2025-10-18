@@ -35,6 +35,7 @@ export const API_ENDPOINTS = {
   // User endpoints
   USERS: `${API_BASE_URL}/users`,
   USER_PROFILE: `${API_BASE_URL}/users/me/profile`,
+  USER_PASSWORD: `${API_BASE_URL}/users/me/password`,
   USER_EXHIBITIONS: `${API_BASE_URL}/users/me/exhibitions`,
   
   // Exhibition endpoints  

@@ -77,7 +77,7 @@ export default function ExhibitionPage() {
 
       let apiUrl: string;
       
-      // Determine which API endpoint to use based on identifier format
+      //  which API 
       if (isMongoId(exhibitionIdentifier)) {
         // It's a MongoDB ObjectId, use the private endpoint
         apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/exhibitions/${exhibitionIdentifier}`;
@@ -105,7 +105,7 @@ export default function ExhibitionPage() {
   };
 
   const splideOptions = {
-    type: 'loop',
+    type: 'slide', // Changed from 'loop' to 'slide' to simplify
     perPage: 1,
     perMove: 1,
     gap: '2rem',
@@ -124,14 +124,17 @@ export default function ExhibitionPage() {
     live: true,
     label: 'Exhibition Artwork Carousel',
     role: 'region',
+    height: '500px', // Add fixed height
     breakpoints: {
       768: {
         padding: { left: '2rem', right: '2rem' },
         gap: '1rem',
+        height: '400px',
       },
       480: {
         padding: { left: '1rem', right: '1rem' },
         gap: '0.5rem',
+        height: '300px',
       },
     },
   };
@@ -208,6 +211,24 @@ export default function ExhibitionPage() {
         </div>
       </div>
 
+      {/* Debug Section - Simple Image Test */}
+      {exhibition.artworks.length > 0 && (exhibition.artworks[0].imageUrl || exhibition.artworks[0].primaryImageSmall) && (
+        <div className="max-w-4xl mx-auto px-4 py-4 bg-yellow-100 mb-4">
+          <h3 className="font-bold mb-2">Debug: Simple Image Test (Outside Carousel)</h3>
+          <p>Image URL: {exhibition.artworks[0].imageUrl || exhibition.artworks[0].primaryImageSmall}</p>
+          <img 
+            src={exhibition.artworks[0].imageUrl || exhibition.artworks[0].primaryImageSmall || ''}
+            alt="Test artwork"
+            className="w-64 h-48 object-contain border-2 border-blue-500"
+            onLoad={() => console.log('Test image loaded successfully')}
+            onError={(e) => {
+              console.error('Test image failed to load');
+              e.currentTarget.style.border = '2px solid red';
+            }}
+          />
+        </div>
+      )}
+
       {/* Carousel Section */}
       <div className="max-w-7xl mx-auto px-4 py-8 relative">
         {/* Slide Counter */}
@@ -215,25 +236,41 @@ export default function ExhibitionPage() {
           {currentSlide + 1} / {exhibition.artworks.length}
         </div>
 
+        {/* Debug info */}
+        <div className="absolute top-4 left-8 z-10 bg-blue-600 text-white px-3 py-1 rounded text-sm">
+          Artworks loaded: {exhibition.artworks.length}
+        </div>
+
         <Splide 
           options={splideOptions} 
           onMoved={(splide: any) => setCurrentSlide(splide.index)}
           aria-labelledby="exhibition-title"
         >
-          {exhibition.artworks.map((artwork, index) => (
+          {exhibition.artworks.map((artwork, index) => {
+            console.log(`Artwork ${index}:`, {
+              title: artwork.title,
+              imageUrl: artwork.imageUrl,
+              primaryImageSmall: artwork.primaryImageSmall
+            });
+            return (
             <SplideSlide key={artwork.artworkId || `artwork-${index}`}>
               <div className="flex flex-col items-center h-full">
                 <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-4xl">
                   {(artwork.imageUrl || artwork.primaryImageSmall) ? (
-                    <div className="relative w-full" style={{ aspectRatio: '4/3' }}>
+                    <div className="w-full h-80 bg-gray-50 border rounded relative">
                       <Image
                         src={artwork.imageUrl || artwork.primaryImageSmall || ''}
                         alt={`${artwork.title} by ${artwork.artist || 'Unknown artist'}`}
                         fill
                         className="object-contain rounded"
-                        sizes="(max-width: 768px) 90vw, (max-width: 1200px) 80vw, 70vw"
-                        priority={index === 0} // Only prioritize first image
-                        loading={index === 0 ? 'eager' : 'lazy'}
+                        sizes="(max-width: 768px) 100vw, 800px"
+                        priority={index === 0}
+                        onError={() => {
+                          console.error('Next.js Image failed to load:', artwork.imageUrl || artwork.primaryImageSmall);
+                        }}
+                        onLoad={() => {
+                          console.log('Next.js Image loaded successfully:', artwork.imageUrl || artwork.primaryImageSmall);
+                        }}
                       />
                     </div>
                   ) : (
@@ -249,7 +286,8 @@ export default function ExhibitionPage() {
                 </div>
               </div>
             </SplideSlide>
-          ))}
+            );
+          })}
         </Splide>
       </div>
 

@@ -6,6 +6,10 @@ import { useRouter } from 'next/navigation';
 import { useLoginPrompt } from '../hooks/useLoginPrompt';
 import LoginPromptModal from '../components/LoginPromptModal';
 import LoadingSpinner from '../components/LoadingSpinner';
+import ExhibitionCard from '../components/ExhibitionCard';
+import ConfirmationModal from '../components/ConfirmationModal';
+import NotificationContainer from '../components/NotificationContainer';
+import { useNotifications } from '../hooks/useNotifications';
 import { API_ENDPOINTS } from '../config/api';
 
 interface UserProfile {
@@ -21,34 +25,74 @@ interface UserProfile {
 }
 
 interface Exhibition {
-  _id: string;
+  _id?: string; // For compatibility
+  id?: string;  // Backend returns this field for user exhibitions
   title: string;
   description: string;
   theme: string;
-  artworks: Record<string, unknown>[];
+  artworks: any[];
   isPublic: boolean;
+  tags: string[];
   shareableLink?: string;
   createdAt: string;
   updatedAt: string;
+  curator?: {
+    username: string;
+    fullName: string;
+  };
 }
 
 export default function ProfilePage() {
   const { user, token, logout } = useAuth();
   const router = useRouter();
   const loginPrompt = useLoginPrompt();
+  const { notifications, removeNotification, showSuccess, showError } = useNotifications();
 
   const [activeTab, setActiveTab] = useState<'overview' | 'exhibitions' | 'settings'>('overview');
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
   const [stats, setStats] = useState({ exhibitions: 0, views: 0 });
+  
+  // Form data state will be initialized in useEffect
+  
+  // Confirmation modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'danger' | 'warning' | 'info';
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'info',
+    onConfirm: () => {}
+  });
 
   // Editable profile data
   const [profileData, setProfileData] = useState({
-    firstName: user?.firstName || '',
-    lastName: user?.lastName || '',
-    bio: user?.bio || '',
-    email: user?.email || ''
+    firstName: '',
+    lastName: '',
+    email: ''
+  });
+
+  // Initialize form data when user data is available
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || ''
+      });
+    }
+  }, [user]);
+  
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
   });
 
   // Redirect if not logged in
@@ -68,6 +112,8 @@ export default function ProfilePage() {
       });
       if (exhResponse.ok) {
         const exhData = await exhResponse.json();
+        console.log('Fetched exhibitions data:', exhData);
+        console.log('First exhibition:', exhData.exhibitions?.[0]);
         setExhibitions(exhData.exhibitions || []);
       }
 
@@ -93,6 +139,8 @@ export default function ProfilePage() {
     }
   }, [user, token, fetchUserData]);
 
+
+
   const handleSaveProfile = async () => {
     try {
       setLoading(true);
@@ -107,21 +155,88 @@ export default function ProfilePage() {
 
       if (response.ok) {
         setIsEditing(false);
-        alert('Profile updated successfully!');
+        showSuccess('Success', 'Profile updated successfully!');
       } else {
         const errorData = await response.json();
-        alert(errorData.message || 'Error updating profile. Please try again.');
+        showError('Error', errorData.message || 'Error updating profile. Please try again.');
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Error updating profile. Please try again.');
+      showError('Error', 'Error updating profile. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdatePassword = async () => {
+    // Validate passwords
+    if (!passwordData.currentPassword) {
+      showError('Error', 'Current password is required');
+      return;
+    }
+    if (!passwordData.newPassword) {
+      showError('Error', 'New password is required');
+      return;
+    }
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      showError('Error', 'New passwords do not match');
+      return;
+    }
+    if (passwordData.newPassword.length < 6) {
+      showError('Error', 'New password must be at least 6 characters long');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await fetch(API_ENDPOINTS.USER_PASSWORD, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword
+        })
+      });
+
+      if (response.ok) {
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        });
+        showSuccess('Success', 'Password updated successfully!');
+      } else {
+        const errorData = await response.json();
+        showError('Error', errorData.message || 'Error updating password. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error updating password:', error);
+      showError('Error', 'Error updating password. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDeleteExhibition = async (exhibitionId: string) => {
-    if (!confirm('Are you sure you want to delete this exhibition?')) return;
+    // Show custom confirmation dialog
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Exhibition',
+      message: 'Are you sure you want to delete this exhibition? This action cannot be undone.',
+      type: 'danger',
+      onConfirm: () => confirmDeleteExhibition(exhibitionId)
+    });
+  };
+
+  const confirmDeleteExhibition = async (exhibitionId: string) => {
+    setConfirmModal({ ...confirmModal, isOpen: false });
+
+    console.log('Attempting to delete exhibition:', exhibitionId);
+    console.log('API Endpoint:', API_ENDPOINTS.EXHIBITION_DELETE(exhibitionId));
+    console.log('Token exists:', !!token);
 
     try {
       const response = await fetch(API_ENDPOINTS.EXHIBITION_DELETE(exhibitionId), {
@@ -129,11 +244,30 @@ export default function ProfilePage() {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
+      console.log('Delete response status:', response.status);
+      console.log('Delete response ok:', response.ok);
+
       if (response.ok) {
-        setExhibitions(prev => prev.filter(ex => ex._id !== exhibitionId));
+        console.log('Before filter - exhibitions count:', exhibitions.length);
+        // First update the UI immediately
+        setExhibitions(prev => {
+          const filtered = prev.filter(ex => (ex.id || ex._id) !== exhibitionId);
+          console.log('After filter - exhibitions count:', filtered.length);
+          return filtered;
+        });
+        
+        // Also refresh from server to ensure consistency
+        await fetchUserData();
+        
+        showSuccess('Success', 'Exhibition deleted successfully!');
+      } else {
+        const errorText = await response.text();
+        console.error('Delete failed with status:', response.status, 'Error:', errorText);
+        showError('Error', 'Failed to delete exhibition. Please try again.');
       }
     } catch (error) {
       console.error('Error deleting exhibition:', error);
+      showError('Error', 'An error occurred while deleting the exhibition. Please try again.');
     }
   };
 
@@ -203,13 +337,7 @@ export default function ProfilePage() {
                       placeholder="Email"
                       className="w-full px-3 py-2 border border-white dark:border-black rounded-lg bg-black dark:bg-white text-white dark:text-black"
                     />
-                    <textarea
-                      value={profileData.bio}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, bio: e.target.value }))}
-                      placeholder="Tell us about yourself..."
-                      rows={3}
-                      className="w-full px-3 py-2 border border-white dark:border-black rounded-lg bg-black dark:bg-white text-white dark:text-black resize-vertical"
-                    />
+
                     <div className="flex space-x-3">
                       <button
                         onClick={handleSaveProfile}
@@ -360,7 +488,7 @@ export default function ProfilePage() {
                   My Exhibitions ({exhibitions.length})
                 </h2>
                 <button
-                  onClick={() => loginPrompt.promptForExhibition(() => router.push('/create-exhibition'))}
+                  onClick={() => router.push('/search')} // Navigate to search page where they can create exhibitions
                   className="px-4 py-2 bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black rounded-lg font-medium transition-colors"
                 >
                   <span className="mr-2">➕</span>
@@ -371,67 +499,32 @@ export default function ProfilePage() {
               {loading ? (
                 <LoadingSpinner />
               ) : exhibitions.length > 0 ? (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
                   {exhibitions.map((exhibition, index) => (
-                    <div key={exhibition._id || `exhibition-full-${index}`} className="bg-white dark:bg-black rounded-lg shadow-md p-6 border border-black dark:border-white">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <h3 className="text-xl font-semibold text-black dark:text-white mb-2">
-                            {exhibition.title}
-                          </h3>
-                          <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">
-                            {exhibition.description}
-                          </p>
-                        </div>
-                        
-                        <div className="flex items-center space-x-2 ml-4">
-                          <button
-                            onClick={() => {
-                              // Use shareable link if available, otherwise fall back to ID
-                              const identifier = exhibition.shareableLink || exhibition._id;
-                              router.push(`/exhibitions/${identifier}`);
-                            }}
-                            className="p-2 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                            title="View exhibition"
-                          >
-                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => handleDeleteExhibition(exhibition._id)}
-                            className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                            title="Delete exhibition"
-                          >
-                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center space-x-4">
-                          <span className="text-gray-600 dark:text-gray-400">
-                            {exhibition.artworks.length} artworks
-                          </span>
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${
-                            exhibition.isPublic
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                              : 'bg-white dark:bg-black text-black dark:text-white border border-black dark:border-white'
-                          }`}>
-                            {exhibition.isPublic ? 'Public' : 'Private'}
-                          </span>
-                          <span className="px-2 py-1 rounded text-xs font-medium bg-white dark:bg-black text-black dark:text-white border border-black dark:border-white">
-                            {exhibition.theme}
-                          </span>
-                        </div>
-                        <span className="text-gray-400 dark:text-gray-500">
-                          {new Date(exhibition.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                    </div>
+                    <ExhibitionCard
+                      key={exhibition._id || `exhibition-${index}`}
+                      exhibition={{
+                        ...exhibition,
+                        curator: {
+                          username: user?.username || '',
+                          fullName: user?.firstName && user?.lastName 
+                            ? `${user.firstName} ${user.lastName}`
+                            : user?.username || ''
+                        }
+                      }}
+                      onClick={(exhibition) => {
+                        // Use shareable link if available, otherwise fall back to ID
+                        const identifier = exhibition.shareableLink || exhibition._id;
+                        router.push(`/exhibitions/${identifier}`);
+                      }}
+                      showCurator={false} // Don't show curator since it's the user's own profile
+                      isOwner={true} // User is the owner of their own exhibitions
+                      onDelete={handleDeleteExhibition} // Pass delete handler
+                      onNotification={(type, title, message) => {
+                        if (type === 'success') showSuccess(title, message);
+                        else if (type === 'error') showError(title, message);
+                      }}
+                    />
                   ))}
                 </div>
               ) : (
@@ -444,7 +537,7 @@ export default function ProfilePage() {
                     Create your first exhibition to showcase your curated artworks!
                   </p>
                   <button
-                    onClick={() => loginPrompt.promptForExhibition(() => router.push('/create-exhibition'))}
+                    onClick={() => router.push('/search')} // Navigate to search page where they can create exhibitions
                     className="px-6 py-3 bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black rounded-lg font-medium transition-colors"
                   >
                     Create Exhibition
@@ -461,37 +554,108 @@ export default function ProfilePage() {
               
               <div className="space-y-6">
                 
-                {/* Quick Actions */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <button
-                    onClick={() => router.push('/settings')}
-                    className="flex items-center justify-center p-4 bg-white dark:bg-black hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-black dark:border-white rounded-lg transition-colors"
-                  >
-                    <svg className="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Advanced Settings
-                  </button>
+                {/* Profile Information */}
+                <div className="bg-white dark:bg-black border border-black dark:border-white rounded-lg p-6">
+                  <h3 className="text-lg font-medium text-black dark:text-white mb-4">Profile Information</h3>
+                  
+                  <div className="space-y-4">
+                    {/* Name Fields */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                          First Name
+                        </label>
+                        <input
+                          type="text"
+                          value={profileData.firstName}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, firstName: e.target.value }))}
+                          className="w-full px-3 py-2 border border-black dark:border-white bg-white dark:bg-black text-black dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                          Last Name
+                        </label>
+                        <input
+                          type="text"
+                          value={profileData.lastName}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, lastName: e.target.value }))}
+                          className="w-full px-3 py-2 border border-black dark:border-white bg-white dark:bg-black text-black dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Email */}
+                    <div>
+                      <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        value={profileData.email}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                        className="w-full px-3 py-2 border border-black dark:border-white bg-white dark:bg-black text-black dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                      />
+                    </div>
+                  </div>
                   
                   <button
-                    onClick={() => router.push('/feedback')}
-                    className="flex items-center justify-center p-4 bg-white dark:bg-black hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-black dark:border-white rounded-lg transition-colors"
+                    onClick={handleSaveProfile}
+                    disabled={loading}
+                    className="mt-4 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-md hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50"
                   >
-                    <svg className="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                    Send Feedback
+                    {loading ? 'Updating...' : 'Update Profile'}
                   </button>
+                </div>
+                
+                {/* Password Change */}
+                <div className="bg-white dark:bg-black border border-black dark:border-white rounded-lg p-6">
+                  <h3 className="text-lg font-medium text-black dark:text-white mb-4">Change Password</h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                        Current Password
+                      </label>
+                      <input
+                        type="password"
+                        value={passwordData.currentPassword}
+                        onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
+                        className="w-full px-3 py-2 border border-black dark:border-white bg-white dark:bg-black text-black dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                        New Password
+                      </label>
+                      <input
+                        type="password"
+                        value={passwordData.newPassword}
+                        onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
+                        className="w-full px-3 py-2 border border-black dark:border-white bg-white dark:bg-black text-black dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-black dark:text-white mb-2">
+                        Confirm New Password
+                      </label>
+                      <input
+                        type="password"
+                        value={passwordData.confirmPassword}
+                        onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                        className="w-full px-3 py-2 border border-black dark:border-white bg-white dark:bg-black text-black dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
+                      />
+                    </div>
+                  </div>
                   
                   <button
-                    onClick={() => router.push('/support')}
-                    className="flex items-center justify-center p-4 bg-white dark:bg-black hover:bg-gray-100 dark:hover:bg-gray-800 text-black dark:text-white border border-black dark:border-white rounded-lg transition-colors"
+                    onClick={handleUpdatePassword}
+                    disabled={loading}
+                    className="mt-4 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-md hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors disabled:opacity-50"
                   >
-                    <svg className="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                    Get Support
+                    {loading ? 'Updating...' : 'Update Password'}
                   </button>
                 </div>
 
@@ -502,10 +666,17 @@ export default function ProfilePage() {
                   <div className="space-y-3">
                     <button
                       onClick={() => {
-                        if (confirm('Are you sure you want to sign out?')) {
-                          logout();
-                          router.push('/');
-                        }
+                        setConfirmModal({
+                          isOpen: true,
+                          title: 'Sign Out',
+                          message: 'Are you sure you want to sign out?',
+                          type: 'warning',
+                          onConfirm: () => {
+                            setConfirmModal({ ...confirmModal, isOpen: false });
+                            logout();
+                            router.push('/');
+                          }
+                        });
                       }}
                       className="w-full flex items-center justify-center p-3 bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/20 dark:hover:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300 rounded-lg transition-colors border border-yellow-300 dark:border-yellow-600"
                     >
@@ -517,12 +688,19 @@ export default function ProfilePage() {
                     
                     <button
                       onClick={() => {
-                        if (confirm('Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your data including exhibitions.')) {
-                          // Handle account deletion
-                          logout();
-                          router.push('/');
-                          alert('Account deleted successfully.');
-                        }
+                        setConfirmModal({
+                          isOpen: true,
+                          title: 'Delete Account',
+                          message: 'Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your data including exhibitions.',
+                          type: 'danger',
+                          onConfirm: () => {
+                            setConfirmModal({ ...confirmModal, isOpen: false });
+                            // Handle account deletion
+                            logout();
+                            router.push('/');
+                            showSuccess('Success', 'Account deleted successfully.');
+                          }
+                        });
                       }}
                       className="w-full flex items-center justify-center p-3 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-700 dark:text-red-300 rounded-lg transition-colors border border-red-300 dark:border-red-600"
                     >
@@ -544,6 +722,24 @@ export default function ProfilePage() {
           onClose={loginPrompt.hideLoginPrompt}
           onLoginSuccess={loginPrompt.handleLoginSuccess}
           trigger={loginPrompt.trigger}
+        />
+        
+        {/* Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={confirmModal.isOpen}
+          title={confirmModal.title}
+          message={confirmModal.message}
+          type={confirmModal.type}
+          onConfirm={confirmModal.onConfirm}
+          onCancel={() => setConfirmModal({ ...confirmModal, isOpen: false })}
+          confirmText="Confirm"
+          cancelText="Cancel"
+        />
+        
+        {/* Notifications */}
+        <NotificationContainer
+          notifications={notifications}
+          onRemove={removeNotification}
         />
       </div>
     </div>

@@ -3,15 +3,18 @@
 /* Main carousel container */
 .splide {
   outline: none;
+  min-height: 500px;
 }
 
 .splide__track {
   padding: 0;
   outline: none;
+  height: 100%;
 }
 
 .splide__list {
   align-items: center;
+  height: 100%;
 }
 
 .splide__slide {
@@ -19,6 +22,8 @@
   justify-content: center;
   align-items: center;
   outline: none;
+  height: 100%;
+  min-height: 400px;
 }
 
 .splide__slide:focus {

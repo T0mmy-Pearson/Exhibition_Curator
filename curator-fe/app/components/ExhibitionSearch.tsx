@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 // Using simple SVG icons instead of external dependencies
 
 export interface Exhibition {
-  _id: string;
+  _id?: string; // For compatibility with some endpoints
+  id?: string;  // Backend returns this field for user exhibitions
   title: string;
   description: string;
   theme: string;

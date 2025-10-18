@@ -52,11 +52,6 @@ export default function Navigation() {
       icon: '', 
       action: () => router.push('/profile')
     },
-    { 
-      label: 'Settings', 
-      icon: '', 
-      action: () => router.push('/settings')
-    },
   ] : [];
 
   return (
@@ -125,24 +120,6 @@ export default function Navigation() {
                           <span>{action.label}</span>
                         </button>
                       ))}
-                      
-                      <hr className="my-2 border-black" />
-                      
-                      <button
-                        onClick={() => router.push('/feedback')}
-                        className="w-full text-left px-4 py-2 text-sm text-black 
-                                 hover:bg-gray-100 flex items-center space-x-2"
-                      >
-                        <span>Send Feedback</span>
-                      </button>
-                      
-                      <button
-                        onClick={() => router.push('/support')}
-                        className="w-full text-left px-4 py-2 text-sm text-black 
-                                 hover:bg-gray-100 flex items-center space-x-2"
-                      >
-                        <span>Report Issue</span>
-                      </button>
                       
                       <hr className="my-2 border-black" />
                       
@@ -284,31 +261,7 @@ export default function Navigation() {
                     </button>
                   ))}
 
-                  <button
-                    onClick={() => {
-                      router.push('/feedback');
-                      setIsMenuOpen(false);
-                    }}
-                    className="w-full text-left flex items-center space-x-2 px-3 py-2 text-base 
-                             text-black hover:text-gray-600
-                             hover:bg-gray-100 rounded-md transition-colors"
-                  >
-                    <span>💬</span>
-                    <span>Send Feedback</span>
-                  </button>
 
-                  <button
-                    onClick={() => {
-                      router.push('/support');
-                      setIsMenuOpen(false);
-                    }}
-                    className="w-full text-left flex items-center space-x-2 px-3 py-2 text-base 
-                             text-black hover:text-gray-600
-                             hover:bg-gray-100 rounded-md transition-colors"
-                  >
-                    <span>🆘</span>
-                    <span>Report Issue</span>
-                  </button>
 
                   <button
                     onClick={() => {
