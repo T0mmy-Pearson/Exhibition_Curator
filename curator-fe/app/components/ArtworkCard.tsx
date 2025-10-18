@@ -129,15 +129,17 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
         const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 
           (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'https://exhibition-curator-backend.onrender.com/api');
         
-        const artworkId = artwork.objectID?.toString() || artwork.id;
+        // Use the artwork's existing id field - backend will handle normalization
+        const artworkId = artwork.id;
         const method = isFavorite ? 'DELETE' : 'POST';
         const endpoint = isFavorite 
           ? `${API_BASE_URL}/favorites/${artworkId}`
           : `${API_BASE_URL}/favorites`;
 
+        // Send the artwork data as-is - backend will normalize it
         const requestPayload = {
-          artworkId: artworkId,
-          source: artwork.source || 'met',
+          id: artwork.id,
+          source: artwork.source,
           title: artwork.title,
           artist: artwork.artist,
           artistBio: artwork.artistBio,
@@ -160,8 +162,7 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
 
         console.log('Making request to:', endpoint);
         console.log('Method:', method);
-        console.log('Request payload object:', requestPayload);
-        console.log('Body (stringified):', body);
+        console.log('Request payload:', requestPayload);
 
         const response = await fetch(endpoint, {
           method,
