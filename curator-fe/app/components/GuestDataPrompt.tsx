@@ -48,11 +48,7 @@ export default function GuestDataPrompt() {
 
   const handleDiscardData = () => {
     clearGuestData();
-    setShowPrompt(false);
   };
-
-  const handleRegisterPrompt = () => {
-    // Removed unused handleRegisterPrompt
 
   if (!showPrompt) return null;
 
@@ -74,10 +70,10 @@ export default function GuestDataPrompt() {
 
             <div className="bg-gray-50 p-4 border border-gray-200">
               <h3 className="font-semibold text-black mb-2">Your Exhibitions:</h3>
-              <ul className="space-y-1">
+              <ul>
                 {guestExhibitions.map(exhibition => (
                   <li key={exhibition.id} className="text-sm text-gray-600 flex justify-between">
-                  <span>&quot;{exhibition.title}&quot;</span>
+                    <span>&quot;{exhibition.title}&quot;</span>
                     <span>{exhibition.artworks.length} artworks</span>
                   </li>
                 ))}
@@ -123,5 +119,5 @@ export default function GuestDataPrompt() {
       />
     </>
   );
-}
+// Removed duplicate closing brace
 }

@@ -69,7 +69,7 @@ export default function FeedbackPage() {
               Send Feedback
             </h1>
             <p className="text-gray-600 dark:text-gray-300">
-              We'd love to hear your thoughts on The Curator. Your feedback helps us improve!
+              We&apos;d love to hear your thoughts on The Curator. Your feedback helps us improve!
             </p>
           </div>
 
@@ -115,7 +115,7 @@ export default function FeedbackPage() {
                            placeholder-gray-500 dark:placeholder-gray-400"
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Provide your email if you'd like a response to your feedback.
+                  Provide your email if you&apos;d like a response to your feedback.
                 </p>
               </div>
             )}

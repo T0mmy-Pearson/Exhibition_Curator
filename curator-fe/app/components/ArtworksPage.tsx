@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import ArtworkSearch from './ArtworkSearch';
 import ArtworkList from './ArtworkList';
-import UserProfile from './UserProfile';
 import AuthModal from './AuthModal';
 import LoginPromptModal from './LoginPromptModal';
 import CreateExhibitionModal from './CreateExhibitionModal';
@@ -17,7 +16,7 @@ export default function ArtworksPage() {
   const [source, setSource] = useState('all');
   const [key, setKey] = useState(0); // Force re-render of ArtworkList
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [authModalTab, setAuthModalTab] = useState<'login' | 'register'>('login');
+  const [authModalTab] = useState<'login' | 'register'>('login');
   const [showCreateExhibitionModal, setShowCreateExhibitionModal] = useState(false);
 
   const handleSearch = (newSearchTerm: string, newSource: string) => {

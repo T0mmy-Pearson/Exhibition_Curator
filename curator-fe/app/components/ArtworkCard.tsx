@@ -314,7 +314,6 @@ export default function ArtworkCard({ artwork, onClick, showAddToExhibition = tr
         try {
           const errorText = await response.text();
           console.log('Raw error response:', errorText);
-          
           // Try to parse as JSON first, then fall back to plain text
           try {
             errorDetails = JSON.parse(errorText);
@@ -323,8 +322,7 @@ export default function ArtworkCard({ artwork, onClick, showAddToExhibition = tr
             errorDetails = { message: errorText };
             console.error('Plain text error response:', errorText);
           }
-        } catch (readError) {
-          console.error('Could not read response text:', readError);
+        } catch {
           errorDetails = { message: 'Could not read error response' };
         }
 

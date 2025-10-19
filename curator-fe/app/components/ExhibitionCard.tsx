@@ -157,11 +157,16 @@ export default function ExhibitionCard({
                 <div className="border-t border-gray-100 my-1"></div>
                 
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete?.((exhibition as any).id || exhibition._id);
-                    setIsDropdownOpen(false);
-                  }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Prefer exhibition.id if it exists and is a string, otherwise fallback to _id
+                      let exhibitionId: string = exhibition._id ?? '';
+                      if ('id' in exhibition && typeof (exhibition as { id?: unknown }).id === 'string') {
+                        exhibitionId = (exhibition as { id: string }).id;
+                      }
+                      onDelete?.(exhibitionId);
+                      setIsDropdownOpen(false);
+                    }}
                   className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors flex items-center"
                 >
                   <svg className="h-4 w-4 mr-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

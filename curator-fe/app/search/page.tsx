@@ -229,7 +229,7 @@ export default function SearchPage() {
       console.log('🎨 Artwork data received:', data);
       
       // Convert API response to StandardizedArtwork format
-      const standardizedArtworks = (data.artworks || []).map((artwork: StandardizedArtwork) => ({
+  const standardizedArtworks = (data.artworks || []).map((artwork: Record<string, unknown>) => ({
         id: artwork.id,
         source: artwork.source,
         title: artwork.title,
@@ -318,7 +318,7 @@ export default function SearchPage() {
     }, 500);
 
     return () => clearTimeout(delayTimeout);
-  }, [searchMode, isRateLimited]);
+  }, [searchMode, isRateLimited, searchArtworks, searchExhibitions]);
 
   const handleExhibitionClick = (exhibition: Exhibition) => {
     // Navigate to exhibition detail view using shareable link or ID

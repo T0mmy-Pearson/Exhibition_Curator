@@ -12,17 +12,7 @@ import NotificationContainer from '../components/NotificationContainer';
 import { useNotifications } from '../hooks/useNotifications';
 import { API_ENDPOINTS } from '../config/api';
 
-interface UserProfile {
-  id: string;
-  username: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  bio?: string;
-  profileImageUrl?: string;
-  joinDate: string;
-  exhibitionCount: number;
-}
+// Removed unused UserProfile type
 
 interface Exhibition {
   _id?: string; // For compatibility
@@ -30,7 +20,7 @@ interface Exhibition {
   title: string;
   description: string;
   theme: string;
-  artworks: any[];
+  artworks: import('../types/artwork').StandardizedArtwork[];
   isPublic: boolean;
   tags: string[];
   shareableLink?: string;
@@ -406,7 +396,7 @@ export default function ProfilePage() {
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  onClick={() => setActiveTab(tab.id as 'overview' | 'exhibitions' | 'settings')}
                   className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                     activeTab === tab.id
                       ? 'border-white dark:border-black text-white dark:text-black'

@@ -66,7 +66,7 @@ export default function ArtworkList({
 
       console.log('Fetching artworks from:', apiUrl);
       
-      // Use centralized API request function
+    // Use centralized API request function
   const data = await apiRequest(apiUrl) as ArtworkSearchResponse;
       
       console.log('Received data:', data);

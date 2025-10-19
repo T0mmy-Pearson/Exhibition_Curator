@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 
 export interface NotificationProps {
   type: 'success' | 'error' | 'info' | 'warning';

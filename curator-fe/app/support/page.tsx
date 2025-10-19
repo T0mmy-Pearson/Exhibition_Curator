@@ -83,7 +83,7 @@ export default function SupportPage() {
                   Report an Issue
                 </h1>
                 <p className="text-gray-600 dark:text-gray-300">
-                  Experiencing a problem? Let us know and we'll help you out!
+                  Experiencing a problem? Let us know and we&#39;ll help you out!
                 </p>
               </div>
 
@@ -149,7 +149,7 @@ export default function SupportPage() {
                                placeholder-gray-500 dark:placeholder-gray-400"
                     />
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      We'll use this to contact you about the issue.
+                      We&#39;ll use this to contact you about the issue.
                     </p>
                   </div>
                 )}

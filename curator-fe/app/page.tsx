@@ -8,7 +8,7 @@ import LoginPromptModal from './components/LoginPromptModal';
 
 export default function Home() {
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
-  const [featuredExhibitions, setFeaturedExhibitions] = useState([]);
+  // Removed unused featuredExhibitions and setFeaturedExhibitions
   const [scrollRotation, setScrollRotation] = useState(3);
   const [isHovered, setIsHovered] = useState(false);
   const { user } = useAuth();
@@ -244,17 +244,17 @@ export default function Home() {
             <div className="p-8 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors relative">
               <div className="absolute top-4 right-4 w-6 h-6 border border-black/10 rotate-45"></div>
               <h3 className="text-xl font-semibold text-black mb-2">Metropolitan Museum</h3>
-              <p className="text-gray-600">New York's premier art institution</p>
+              <p className="text-gray-600">New York&apos;s premier art institution</p>
             </div>
             <div className="p-8 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors relative">
               <div className="absolute top-4 right-4 w-4 h-4 bg-black/10 rounded-full"></div>
               <h3 className="text-xl font-semibold text-black mb-2">Victoria & Albert</h3>
-              <p className="text-gray-600">London's museum of art and design</p>
+              <p className="text-gray-600">London&apos;s museum of art and design</p>
             </div>
             <div className="p-8 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors relative">
               <div className="absolute top-4 right-4 w-6 h-2 bg-black/10"></div>
               <h3 className="text-xl font-semibold text-black mb-2">Rijksmuseum</h3>
-              <p className="text-gray-600">Amsterdam's national museum</p>
+              <p className="text-gray-600">Amsterdam&apos;s national museum</p>
             </div>
           </div>
         </div>

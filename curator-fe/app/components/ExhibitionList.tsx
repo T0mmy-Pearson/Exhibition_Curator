@@ -12,7 +12,7 @@ interface ExhibitionListProps {
   error?: string | null;
   onExhibitionClick?: (exhibition: Exhibition) => void;
   showPagination?: boolean;
-  totalCount?: number;
+  // totalCount?: number; // Removed unused prop
 }
 
 export default function ExhibitionList({ 
@@ -21,8 +21,8 @@ export default function ExhibitionList({
   error = null,
   onExhibitionClick,
   showPagination = false,
-  totalCount = 0
-}: ExhibitionListProps) {
+  // totalCount = 0 // Removed unused prop
+}: Omit<ExhibitionListProps, 'totalCount'>) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 

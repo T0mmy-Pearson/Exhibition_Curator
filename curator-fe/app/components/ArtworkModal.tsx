@@ -1,4 +1,6 @@
 'use client';
+import { Exhibition } from '../types/exhibition';
+import Image from 'next/image';
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
@@ -51,14 +53,12 @@ interface ArtworkModalProps {
 }
 
 export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalProps) {
-  const { user, token } = useAuth();
+  const { token } = useAuth();
   const loginPrompt = useLoginPrompt();
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [showDoubleTapHint, setShowDoubleTapHint] = useState(false);
   const [showExhibitionModal, setShowExhibitionModal] = useState(false);
-  const [userExhibitions, setUserExhibitions] = useState<any[]>([]);
+  const [userExhibitions, setUserExhibitions] = useState<Exhibition[]>([]);
   const [addingToExhibition, setAddingToExhibition] = useState(false);
 
   // Get all available images
@@ -81,7 +81,7 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
     if (isOpen && artwork) {
       setCurrentImageIndex(0);
     }
-  }, [isOpen, artwork]);
+  }, [isOpen, artwork, onClose]);
 
   // Handle adding to exhibition
   const handleAddToExhibitionClick = () => {
@@ -270,14 +270,11 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
               {allImages.length > 0 ? (
                 <div className="relative h-full min-h-[400px] lg:min-h-[600px]">
                   <div className="relative w-full h-full group">
-                    <img
-                      src={allImages[currentImageIndex]}
+                    <Image
+                      src={allImages[currentImageIndex] || '/placeholder-artwork.jpg'}
                       alt={artwork.title}
-                      className="w-full h-full object-contain cursor-pointer"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = '/placeholder-artwork.jpg';
-                      }}
+                      fill
+                      className="object-contain cursor-pointer"
                     />
                   </div>
 
@@ -537,11 +534,11 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
                 </button>
               </div>
               
-              <p className="text-black mb-4">Select an exhibition to add "{artwork?.title}" to:</p>
+              <p className="text-black mb-4">Select an exhibition to add &quot;{artwork?.title}&quot; to:</p>
               
               {userExhibitions.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-black mb-4">You don't have any exhibitions yet.</p>
+                  <p className="text-black mb-4">You don&apos;t have any exhibitions yet.</p>
                   <button
                     onClick={() => {
                       setShowExhibitionModal(false);

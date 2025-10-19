@@ -52,7 +52,7 @@ export function GuestProvider({ children }: GuestProviderProps) {
       if (storedExhibitions) {
         try {
           setGuestExhibitions(JSON.parse(storedExhibitions));
-        } catch (error) {
+        } catch (error: unknown) {
           console.error('Error parsing guest exhibitions:', error);
           localStorage.removeItem(GUEST_STORAGE_KEY);
         }
@@ -61,7 +61,7 @@ export function GuestProvider({ children }: GuestProviderProps) {
       if (storedCurrentExhibition) {
         try {
           setCurrentGuestExhibition(JSON.parse(storedCurrentExhibition));
-        } catch (error) {
+        } catch (error: unknown) {
           console.error('Error parsing current guest exhibition:', error);
           localStorage.removeItem(CURRENT_GUEST_EXHIBITION_KEY);
         }
@@ -177,7 +177,7 @@ export function GuestProvider({ children }: GuestProviderProps) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
               },
-              body: JSON.stringify(artwork),
+              body: JSON.stringify(artwork as object),
             });
           }
         }

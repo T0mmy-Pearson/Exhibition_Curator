@@ -94,13 +94,13 @@ export default function LoginTestPage() {
                   onClick={() => loginPrompt.promptForAddToExhibition('Mona Lisa')}
                   className="block w-full text-left px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded"
                 >
-                  🎨 Add "Mona Lisa" to Exhibition
+                  🎨 Add &quot;Mona Lisa&quot; to Exhibition
                 </button>
                 <button
                   onClick={() => loginPrompt.promptForAddToExhibition('The Starry Night')}
                   className="block w-full text-left px-4 py-2 bg-blue-50 hover:bg-blue-100 rounded"
                 >
-                  🎨 Add "The Starry Night" to Exhibition
+                  🎨 Add &quot;The Starry Night&quot; to Exhibition
                 </button>
               </div>
             </div>
@@ -164,8 +164,8 @@ export default function LoginTestPage() {
               💡 How to Test
             </h3>
             <ol className="text-sm text-yellow-800 dark:text-yellow-300 space-y-1 list-decimal list-inside">
-              <li>Make sure you're logged out to see login prompts</li>
-              <li>Click "Reset First Visit Status" to test the welcome modal</li>
+              <li>Make sure you&apos;re logged out to see login prompts</li>
+              <li>Click &quot;Reset First Visit Status&quot; to test the welcome modal</li>
               <li>Try each trigger button to see different login contexts</li>
               <li>Login through the modal to see the success callbacks</li>
               <li>Notice how each trigger shows relevant messaging</li>
