@@ -34,7 +34,7 @@ export default function SearchPage() {
   // Get initial search mode from URL parameter, default to 'exhibitions'
   const initialMode = (searchParams.get('mode') as SearchMode) || 'exhibitions';
   const isTutorialMode = searchParams.get('tutorial') === 'first-curation';
-  
+
   // If in tutorial mode, force artwork search mode
   const [searchMode, setSearchMode] = useState<SearchMode>(isTutorialMode ? 'artworks' : initialMode);
   const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
@@ -45,6 +45,20 @@ export default function SearchPage() {
   const [artworkSource, setArtworkSource] = useState<string>('all');
   const [lastRequestTime, setLastRequestTime] = useState<number>(0);
   const [isRateLimited, setIsRateLimited] = useState<boolean>(false);
+
+  // Fetch 20 most recent exhibitions on initial load
+  useEffect(() => {
+    if (searchMode === 'exhibitions') {
+      searchExhibitions({
+        query: '',
+        theme: 'All Themes',
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+        publicOnly: false
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchMode]);
 
   // Enhanced rate limiting function
   const checkRateLimit = (): boolean => {
@@ -293,6 +307,10 @@ export default function SearchPage() {
         // Clear exhibition data when switching to artworks
         setExhibitions([]);
         setError(null);
+
+        // Load default artworks (empty search, all sources)
+        console.log('🎨 Loading default artworks...');
+        searchArtworks('', 'all');
       }
     };
 

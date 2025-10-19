@@ -44,13 +44,15 @@ export default function ExhibitionList({
     );
   }
 
+  // Debug: log incoming exhibitions
+  console.log('[ExhibitionList] exhibitions.length:', exhibitions.length);
+  console.log('[ExhibitionList] first 3 exhibitions:', exhibitions.slice(0, 3));
+
   // Filter out any invalid exhibitions and remove duplicates
   const validExhibitions = exhibitions
-    .filter(exhibition => exhibition && (exhibition._id || exhibition.title))
-    .filter((exhibition, index, self) => 
-      // Remove duplicates based on _id
-      index === self.findIndex(e => e._id === exhibition._id)
-    );
+    .filter(exhibition => exhibition && (exhibition.id || exhibition._id || exhibition.title));
+  console.log('[ExhibitionList] validExhibitions.length:', validExhibitions.length);
+  console.log('[ExhibitionList] first 3 validExhibitions:', validExhibitions.slice(0, 3));
   
   const totalPages = Math.ceil(validExhibitions.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;

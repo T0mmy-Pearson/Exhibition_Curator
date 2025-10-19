@@ -23,7 +23,6 @@ export const exhibitionsRouter = Router();
 
 // Public routes (no authentication required)
 exhibitionsRouter.get('/public', getPublicExhibitions);
-exhibitionsRouter.get('/public/:exhibition_id', getExhibitionById);
 exhibitionsRouter.get('/shared/:shareable_link', getSharedExhibition);
 exhibitionsRouter.get('/search', searchExhibitions);
 exhibitionsRouter.get('/featured', getFeaturedExhibitions);
@@ -32,16 +31,13 @@ exhibitionsRouter.get('/trending', getTrendingExhibitions);
 
 // All exhibitions (public route)
 exhibitionsRouter.get('/', getAllExhibitions);
+exhibitionsRouter.get('/public/:exhibition_id', getExhibitionById);
 
-// Protected routes (authentication required)
 
-
-// Personal exhibition management (protected)
 // Protected routes (authentication required)
 exhibitionsRouter.use(authenticateToken);
 exhibitionsRouter.get('/user', getExhibitions);
 exhibitionsRouter.post('/', createExhibition);
-exhibitionsRouter.get('/:exhibition_id', getExhibitionById);
 exhibitionsRouter.patch('/:exhibition_id', updateExhibition);
 exhibitionsRouter.delete('/:exhibition_id', deleteExhibition);
 

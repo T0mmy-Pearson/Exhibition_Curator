@@ -67,10 +67,31 @@ export const fetchExhibitionById = async (userId: string, exhibitionId: string) 
   }
 };
 
-// Fetch public exhibition by shareable link
+// Fetch exhibition by shareable link (search all users' exhibitions)
 export const fetchExhibitionByShareableLink = async (shareableLink: string) => {
-  // This function is deprecated since isPublic is removed
-  return null;
+  try {
+    // Find all users with exhibitions
+    const users = await User.find({}, 'exhibitions username firstName lastName');
+    for (const user of users) {
+      const found = user.exhibitions.find(
+        (ex: any) => ex.shareableLink === shareableLink
+      );
+      if (found) {
+        // Attach curator info for response
+        return {
+          ...found.toObject(),
+          curator: {
+            username: user.username,
+            fullName: user.fullName
+          }
+        };
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error('Error fetching exhibition by shareable link:', error);
+    throw new Error('Failed to fetch exhibition by shareable link');
+  }
 };
 
 // Create new exhibition
