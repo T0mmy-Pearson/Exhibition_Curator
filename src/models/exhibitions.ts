@@ -1,10 +1,8 @@
 // Fetch all exhibitions (optionally only public) && 
-export const fetchAllExhibitions = async (isPublicOnly: boolean = false, limit: number = 100, offset: number = 0) => {
+export const fetchAllExhibitions = async (isPublicOnly: boolean = false, limit: number = 20, offset: number = 0) => {
   try {
-    const users = await User.find({}, 'exhibitions username firstName lastName')
-      .skip(offset)
-      .limit(limit);
-    const allExhibitions = users.flatMap(user =>
+    const users = await User.find({}, 'exhibitions username firstName lastName');
+    let allExhibitions = users.flatMap(user =>
       user.exhibitions
         .filter(exhibition => !isPublicOnly || exhibition.isPublic)
         .map(exhibition => ({
@@ -15,6 +13,10 @@ export const fetchAllExhibitions = async (isPublicOnly: boolean = false, limit: 
           }
         }))
     );
+    // Sort by createdAt descending (most recent first)
+  allExhibitions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    // Apply offset and limit
+    allExhibitions = allExhibitions.slice(offset, offset + limit);
     return allExhibitions;
   } catch (error) {
     console.error('Error fetching all exhibitions:', error);
