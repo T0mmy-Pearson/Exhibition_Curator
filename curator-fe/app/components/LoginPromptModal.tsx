@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
-import { useImagePreloader } from '../hooks/useImagePreloader';
 
 export type LoginTrigger = 
   | 'first-visit' 

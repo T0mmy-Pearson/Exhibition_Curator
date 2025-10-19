@@ -87,23 +87,17 @@ export default function SearchPage() {
   // Use the all exhibitions endpoint (public/private distinction removed)
   const endpoint = '/exhibitions';
 
+
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'http://localhost:9090/api');
       const fullUrl = `${API_BASE_URL}${endpoint}?${params}`;
-
-      console.log('🌐 API_BASE_URL:', API_BASE_URL);
-      console.log('📍 Endpoint:', endpoint);
-      console.log('📋 Params:', params.toString());
-      console.log('🔗 Full URL:', fullUrl);
-      console.log('🔐 Has token:', !!token);
-
+      // Never send Authorization header for public GET /exhibitions
       const requestOptions = {
         headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
+          'Content-Type': 'application/json'
         }
       };
+      console.log('🔐 Has token:', !!token);
       console.log('📦 Request options:', requestOptions);
-
       const response = await fetch(fullUrl, requestOptions);
 
       console.log('📬 Response status:', response.status);
