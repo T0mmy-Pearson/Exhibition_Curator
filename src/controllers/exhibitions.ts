@@ -154,12 +154,17 @@ export const addArtworkToExhibition = async (req: Request, res: Response, next: 
     
     // Handle artwork data - it can be directly in body or wrapped in artworkData
     const artworkData = req.body.artworkData || req.body;
-    
+
     // Map objectID to artworkId for consistency with schema
     if (artworkData.objectID && !artworkData.artworkId) {
       artworkData.artworkId = artworkData.objectID;
     }
-    
+
+    // Ensure all image fields are present
+    artworkData.smallImageUrl = artworkData.smallImageUrl || artworkData.imageUrl || artworkData.primaryImageSmall || '';
+    artworkData.imageUrl = artworkData.imageUrl || artworkData.smallImageUrl || artworkData.primaryImageSmall || '';
+    artworkData.primaryImageSmall = artworkData.primaryImageSmall || artworkData.smallImageUrl || artworkData.imageUrl || '';
+
     const exhibition = await exhibitionModel.addArtworkToExhibition(userId, exhibition_id, artworkData);
     res.status(201).json({ exhibition });
   } catch (err) {

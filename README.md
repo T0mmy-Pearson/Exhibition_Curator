@@ -1,3 +1,95 @@
+# Exhibition Curator
+
+A full-stack web application for curating, sharing, and exploring art exhibitions using public museum APIs.
+
+## Features
+- Curate exhibitions with artworks from the Met Museum, V&A, and more
+- User authentication and profiles
+- Public and private exhibitions
+- Responsive Next.js frontend
+- Express/Node.js backend with MongoDB
+
+## Prerequisites
+- Node.js (v18+ recommended)
+- npm or yarn
+- MongoDB Atlas account (or local MongoDB)
+
+## Getting Started
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/T0mmy-Pearson/Exhibition_Curator.git
+cd Exhibition_Curator
+```
+
+### 2. Install dependencies
+#### Backend
+```bash
+cd be
+npm install
+```
+#### Frontend
+```bash
+cd ../curator-fe
+npm install
+```
+
+### 3. Set up environment variables
+#### Backend (`be/.env`)
+```
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+NEXT_PUBLIC_API_URL=http://localhost:5000
+```
+#### Frontend (`curator-fe/.env.local`)
+```
+NEXT_PUBLIC_API_URL=http://localhost:5000
+```
+
+### 4. Run the backend server
+```bash
+cd be
+npm run dev
+```
+The backend will start on `http://localhost:5000`.
+
+### 5. Run the frontend (Next.js)
+```bash
+cd ../curator-fe
+npm run dev
+```
+The frontend will start on `http://localhost:3000`.
+
+## Database Setup
+- By default, the backend connects to MongoDB Atlas. You can use a local MongoDB instance if preferred.
+- See `be/MONGODB_SETUP.md` for details.
+
+## Seeding Data
+- To seed the database for development, use the scripts in `root/db/seeds/`.
+
+## Testing
+- Backend: `npm test` in `root`
+- Frontend: `npm test` in `curator-fe/`
+
+## Deployment
+- You can deploy the backend and frontend separately (e.g., Render, Vercel).
+- Update `NEXT_PUBLIC_API_URL` in both `.env` files to match your deployment URLs.
+
+## Troubleshooting
+- Ensure MongoDB is running and accessible.
+- Check `.env` files for correct API URLs and secrets.
+- For API rate limits, try using your own museum API keys if supported.
+
+## License
+MIT
+
+## Contact
+For questions or contributions, open an issue or pull request on GitHub.
+
+---
+
+# Backend API Reference
+
 # Exhibition Curator API
 
 A Node.js Express backend API for managing virtual museum exhibitions. This API allows users to search artworks from multiple museum APIs, create personalized exhibitions, and manage curated collections.
