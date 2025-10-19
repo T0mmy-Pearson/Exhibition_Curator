@@ -48,7 +48,19 @@ const fetchExhibitionById = async (userId, exhibitionId) => {
         if (!user) {
             throw new Error('User not found');
         }
-        const exhibition = user.exhibitions.find(ex => ex._id?.toString() === exhibitionId);
+        // Compare both ObjectId and string representations for robustness
+        const mongoose = require('mongoose');
+        const exhibition = user.exhibitions.find(ex => {
+            if (!ex._id)
+                return false;
+            // Compare as ObjectId
+            try {
+                return ex._id.equals(exhibitionId) || ex._id.toString() === exhibitionId;
+            }
+            catch {
+                return ex._id.toString() === exhibitionId;
+            }
+        });
         if (!exhibition) {
             throw new Error('Exhibition not found');
         }
@@ -60,10 +72,30 @@ const fetchExhibitionById = async (userId, exhibitionId) => {
     }
 };
 exports.fetchExhibitionById = fetchExhibitionById;
-// Fetch public exhibition by shareable link
+// Fetch exhibition by shareable link (search all users' exhibitions)
 const fetchExhibitionByShareableLink = async (shareableLink) => {
-    // This function is deprecated since isPublic is removed
-    return null;
+    try {
+        // Find all users with exhibitions
+        const users = await User_1.User.find({}, 'exhibitions username firstName lastName');
+        for (const user of users) {
+            const found = user.exhibitions.find((ex) => ex.shareableLink === shareableLink);
+            if (found) {
+                // Attach curator info for response
+                return {
+                    ...found.toObject(),
+                    curator: {
+                        username: user.username,
+                        fullName: user.fullName
+                    }
+                };
+            }
+        }
+        return null;
+    }
+    catch (error) {
+        console.error('Error fetching exhibition by shareable link:', error);
+        throw new Error('Failed to fetch exhibition by shareable link');
+    }
 };
 exports.fetchExhibitionByShareableLink = fetchExhibitionByShareableLink;
 // Create new exhibition

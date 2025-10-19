@@ -8,7 +8,7 @@ interface ExhibitionData {
 }
 export declare const fetchUserExhibitions: (userId: string) => Promise<any[]>;
 export declare const fetchExhibitionById: (userId: string, exhibitionId: string) => Promise<any>;
-export declare const fetchExhibitionByShareableLink: (shareableLink: string) => Promise<null>;
+export declare const fetchExhibitionByShareableLink: (shareableLink: string) => Promise<any>;
 export declare const insertExhibition: (userId: string, exhibitionData: ExhibitionData) => Promise<any>;
 export declare const updateExhibitionById: (userId: string, exhibitionId: string, updates: Partial<ExhibitionData>) => Promise<any>;
 export declare const removeExhibitionById: (userId: string, exhibitionId: string) => Promise<void>;

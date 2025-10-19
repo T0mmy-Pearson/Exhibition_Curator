@@ -210,34 +210,60 @@ exports.searchByTitleOrArtist = searchByTitleOrArtist;
 const getArtworkById = async (req, res) => {
     try {
         const { artwork_id } = req.params;
-        // Parse the artwork ID format: "met:12345", "rijks:SK-A-1234", or "va:systemNumber"
-        const [source, objectId] = artwork_id.split(':');
-        if (!source || !objectId) {
-            return res.status(400).json({
-                error: 'Invalid artwork ID format',
-                message: 'Artwork ID should be in format "source:objectId" (e.g., "met:12345", "va:O123456")'
-            });
+        let source;
+        let objectId;
+        // Support both 'source:objectId' and plain IDs
+        if (artwork_id.includes(':')) {
+            [source, objectId] = artwork_id.split(':');
+        }
+        else {
+            // If numeric, treat as Met Museum
+            if (/^\d+$/.test(artwork_id)) {
+                source = 'met';
+                objectId = artwork_id;
+            }
+            else if (artwork_id.startsWith('va')) {
+                source = 'va';
+                objectId = artwork_id.replace('va:', '');
+            }
+            else {
+                // Could add more sources here
+                return res.status(400).json({
+                    error: 'Invalid artwork ID format',
+                    message: 'Artwork ID should be numeric (Met) or in format "source:objectId" (e.g., "met:12345", "va:O123456")'
+                });
+            }
         }
         let artwork;
         switch (source) {
-            case 'met':
+            case 'met': {
                 const metArtwork = await metService.getArtworkById(parseInt(objectId));
                 artwork = metService.standardizeArtwork(metArtwork);
                 break;
-            case 'rijks':
+            }
+            case 'rijks': {
                 const rijksArtwork = await rijksService.getArtworkById(objectId);
                 artwork = await rijksService.standardizeArtwork(rijksArtwork);
-            case 'va':
+                break;
+            }
+            case 'va': {
                 const vaArtwork = await vaService.getArtworkById(objectId);
                 artwork = vaService.standardizeArtwork(vaArtwork);
                 break;
+            }
             default:
                 return res.status(400).json({
                     error: 'Invalid source',
                     message: 'Source must be "met", "rijks", or "va"'
                 });
         }
-        res.json(artwork);
+        if (!artwork) {
+            return res.status(404).json({
+                error: 'Artwork not found',
+                message: 'The requested artwork could not be found'
+            });
+        }
+        res.json({ artwork });
     }
     catch (error) {
         console.error('Error fetching artwork:', error);

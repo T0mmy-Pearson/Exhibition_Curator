@@ -37,7 +37,10 @@ const insertUser = async (userData) => {
         ...otherData,
         password: hashedPassword
     });
-    return await user.save();
+    console.log('Attempting to save new user:', user);
+    const savedUser = await user.save();
+    console.log('User saved successfully:', savedUser);
+    return savedUser;
 };
 exports.insertUser = insertUser;
 const updateUserById = async (userId, updates) => {
