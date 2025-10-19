@@ -1,3 +1,16 @@
+// Get all exhibitions (not just current user's)
+export const getAllExhibitions = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { publicOnly = 'false', limit = '100', offset = '0' } = req.query;
+    const isPublicOnly = publicOnly === 'true';
+    const limitNum = parseInt(limit as string, 10);
+    const offsetNum = parseInt(offset as string, 10);
+    const exhibitions = await exhibitionModel.fetchAllExhibitions(isPublicOnly, limitNum, offsetNum);
+    res.status(200).json({ exhibitions });
+  } catch (err) {
+    next(err);
+  }
+};
 import { Request, Response, NextFunction } from 'express';
 import * as exhibitionModel from '../models/exhibitions';
 import { User } from '../models/User';
@@ -450,6 +463,8 @@ export const unshareExhibition = async (req: AuthenticatedRequest, res: Response
   }
 };
 
+
+// Search exhibitions, or return all if query is blank
 export const searchExhibitions = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const { 
@@ -469,15 +484,14 @@ export const searchExhibitions = async (req: AuthenticatedRequest, res: Response
     const offset = (pageNum - 1) * limitNum;
     const isPublicOnly = publicOnly === 'true';
 
-    if (!query || typeof query !== 'string') {
-      return res.status(400).json({
-        error: 'Invalid request',
-        message: 'Search query is required'
-      });
+    let exhibitions;
+    if (!query || typeof query !== 'string' || query.trim() === '') {
+      // Return all exhibitions if query is blank
+      exhibitions = await exhibitionModel.fetchAllExhibitions(isPublicOnly, limitNum * 3, 0);
+    } else {
+      // Search exhibitions
+      exhibitions = await exhibitionModel.searchExhibitions(query, isPublicOnly, limitNum * 3, 0);
     }
-
-    // Search exhibitions
-    let exhibitions = await exhibitionModel.searchExhibitions(query, isPublicOnly, limitNum * 3, 0); // Get more results to filter
 
     // Additional filtering
     if (theme && typeof theme === 'string') {
@@ -495,7 +509,6 @@ export const searchExhibitions = async (req: AuthenticatedRequest, res: Response
     // Sort exhibitions
     exhibitions.sort((a: any, b: any) => {
       let aValue, bValue;
-      
       switch (sortBy) {
         case 'title':
           aValue = a.title || '';
@@ -519,7 +532,6 @@ export const searchExhibitions = async (req: AuthenticatedRequest, res: Response
           bValue = new Date(b.createdAt);
           break;
       }
-
       if (sortOrder === 'asc') {
         return aValue > bValue ? 1 : -1;
       } else {
@@ -545,7 +557,6 @@ export const searchExhibitions = async (req: AuthenticatedRequest, res: Response
       createdAt: exhibition.createdAt,
       updatedAt: exhibition.updatedAt,
       curator: exhibition.curator,
-      // Only include full artworks for user's own exhibitions
       ...(exhibition.curator?.username === userId && {
         artworks: exhibition.artworks || []
       })
@@ -571,7 +582,6 @@ export const searchExhibitions = async (req: AuthenticatedRequest, res: Response
         sortOrder
       }
     });
-
   } catch (err) {
     next(err);
   }

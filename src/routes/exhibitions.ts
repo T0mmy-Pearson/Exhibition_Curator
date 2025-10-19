@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { 
   getExhibitions, 
+  getAllExhibitions,
   getExhibitionById, 
   createExhibition, 
   updateExhibition, 
@@ -28,11 +29,15 @@ exhibitionsRouter.get('/search', searchExhibitions);
 exhibitionsRouter.get('/featured', getFeaturedExhibitions);
 exhibitionsRouter.get('/trending', getTrendingExhibitions);
 
+
+// All exhibitions (public route)
+exhibitionsRouter.get('/', getAllExhibitions);
+
 // Protected routes (authentication required)
 exhibitionsRouter.use(authenticateToken);
 
 // Personal exhibition management
-exhibitionsRouter.get('/', getExhibitions);
+exhibitionsRouter.get('/user', getExhibitions);
 exhibitionsRouter.post('/', createExhibition);
 exhibitionsRouter.get('/:exhibition_id', getExhibitionById);
 exhibitionsRouter.patch('/:exhibition_id', updateExhibition);

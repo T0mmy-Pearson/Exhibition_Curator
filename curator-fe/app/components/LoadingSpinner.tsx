@@ -1,8 +1,9 @@
 interface LoadingSpinnerProps {
   size?: 'small' | 'medium' | 'large';
+  message?: string;
 }
 
-export default function LoadingSpinner({ size = 'medium' }: LoadingSpinnerProps) {
+export default function LoadingSpinner({ size = 'medium', message = 'Loading...' }: LoadingSpinnerProps) {
   const sizeClasses = {
     small: 'h-6 w-6',
     medium: 'h-12 w-12',
@@ -30,7 +31,7 @@ export default function LoadingSpinner({ size = 'medium' }: LoadingSpinnerProps)
         </div>
         
         <div className="mt-4 text-center">
-          <p className="text-black text-sm font-medium">Loading artworks...</p>
+          <p className="text-black text-sm font-medium">{message}</p>
           
           {/* Abstract dots animation */}
           <div className="flex justify-center items-center mt-2 space-x-1">

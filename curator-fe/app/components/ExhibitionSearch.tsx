@@ -90,7 +90,7 @@ export default function ExhibitionSearch({ onSearch, loading = false }: Exhibiti
     });
   };
 
-  const hasActiveFilters = filters.query || filters.theme !== 'All Themes' || !filters.publicOnly;
+  const hasActiveFilters = filters.query || filters.theme !== 'All Themes';
 
   return (
     <div className="bg-gray-50 border border-black p-6 mb-6 relative overflow-hidden">
@@ -204,20 +204,7 @@ export default function ExhibitionSearch({ onSearch, loading = false }: Exhibiti
               </div>
             </div>
 
-            {/* Additional options */}
-            <div className="flex items-center gap-4">
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={filters.publicOnly}
-                  onChange={(e) => handleInputChange('publicOnly', e.target.checked)}
-                  className="h-4 w-4 text-black focus:ring-gray-500 border-black rounded"
-                />
-                <span className="ml-2 text-sm text-black">
-                  Public exhibitions only
-                </span>
-              </label>
-            </div>
+
           </div>
         )}
 
@@ -234,11 +221,7 @@ export default function ExhibitionSearch({ onSearch, loading = false }: Exhibiti
                 Theme: {filters.theme}
               </span>
             )}
-            {!filters.publicOnly && (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-black text-white">
-                All exhibitions
-              </span>
-            )}
+
           </div>
         )}
       </form>

@@ -145,7 +145,7 @@ export default function ArtworkList({
   }, [fetchArtworks, propArtworks]);
 
   if (loading) {
-    return <LoadingSpinner />;
+    return <LoadingSpinner message="Loading artworks..." />;
   }
 
   if (error) {

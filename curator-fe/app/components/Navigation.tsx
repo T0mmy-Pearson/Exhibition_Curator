@@ -33,9 +33,7 @@ export default function Navigation() {
   };
 
   const navLinks = [
-    { href: '/', label: 'Artworks', icon: '' },
     { href: '/search', label: 'Search', icon: '' },
-    { href: '/search?mode=exhibitions', label: 'Exhibitions', icon: '' },
   ];
 
   const userActions = user ? [

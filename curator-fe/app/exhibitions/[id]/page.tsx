@@ -142,7 +142,7 @@ export default function ExhibitionPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <LoadingSpinner size="large" />
+        <LoadingSpinner size="large" message="Loading exhibition..." />
       </div>
     );
   }

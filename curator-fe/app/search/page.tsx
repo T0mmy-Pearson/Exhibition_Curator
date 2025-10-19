@@ -83,22 +83,16 @@ export default function SearchPage() {
       params.append('sortOrder', filters.sortOrder);
       params.append('limit', '50');
 
-      // Use appropriate endpoint based on publicOnly filter
-      const endpoint = filters.publicOnly 
-        ? '/exhibitions/public'
-        : '/exhibitions/search';
+      // Always use the search endpoint - no public/private distinction
+      const endpoint = '/exhibitions/search';
 
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'http://localhost:9090/api');
       
-      let fullUrl;
-      if (endpoint === '/exhibitions/search') {
-        // For search endpoint, we need a query parameter
-        const searchQuery = filters.query || 'a'; // Use broad search term to get all exhibitions
-        params.set('q', searchQuery);
-        fullUrl = `${API_BASE_URL}${endpoint}?${params}`;
-      } else {
-        fullUrl = `${API_BASE_URL}${endpoint}?${params}`;
-      }
+      // For search endpoint, we need a query parameter
+      // Use a broad search term that should match most exhibitions
+      const searchQuery = filters.query || 'art'; // Use "art" as default broad search term
+      params.set('q', searchQuery);
+      const fullUrl = `${API_BASE_URL}${endpoint}?${params}`;
       
       console.log('🌐 API_BASE_URL:', API_BASE_URL);
       console.log('📍 Endpoint:', endpoint);
@@ -109,7 +103,7 @@ export default function SearchPage() {
       const requestOptions = {
         headers: {
           'Content-Type': 'application/json',
-          ...(token && !filters.publicOnly && { 'Authorization': `Bearer ${token}` })
+          ...(token && { 'Authorization': `Bearer ${token}` })
         }
       };
       console.log('📦 Request options:', requestOptions);
@@ -297,14 +291,14 @@ export default function SearchPage() {
         setArtworks([]);
         setError(null);
         
-        // Load most recent exhibitions automatically
-        console.log('🏛️ Loading most recent exhibitions...');
+        // Load exhibitions automatically
+        console.log('🏛️ Loading exhibitions...');
         searchExhibitions({
-          query: '', // Empty query to get all exhibitions
-          theme: 'All Themes',
+          query: '', // Will default to "art" search term
+          theme: 'All Themes', 
           sortBy: 'createdAt',
           sortOrder: 'desc',
-          publicOnly: false
+          publicOnly: false // This parameter is now ignored but kept for compatibility
         });
       } else {
         // Clear exhibition data when switching to artworks

@@ -29,7 +29,7 @@ export default function ExhibitionList({
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <LoadingSpinner size="large" />
+        <LoadingSpinner size="large" message="Loading exhibitions..." />
       </div>
     );
   }
