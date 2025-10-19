@@ -1,6 +1,31 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.searchExhibitions = exports.removeArtworkFromExhibition = exports.addArtworkToExhibition = exports.removeExhibitionById = exports.updateExhibitionById = exports.insertExhibition = exports.fetchExhibitionByShareableLink = exports.fetchExhibitionById = exports.fetchPublicExhibitions = exports.fetchUserExhibitions = void 0;
+exports.searchExhibitions = exports.removeArtworkFromExhibition = exports.addArtworkToExhibition = exports.removeExhibitionById = exports.updateExhibitionById = exports.insertExhibition = exports.fetchExhibitionByShareableLink = exports.fetchExhibitionById = exports.fetchPublicExhibitions = exports.fetchUserExhibitions = exports.fetchAllExhibitions = void 0;
+// Fetch all exhibitions (optionally only public) && 
+const fetchAllExhibitions = async (isPublicOnly = false, limit = 20, offset = 0) => {
+    try {
+        const users = await User_1.User.find({}, 'exhibitions username firstName lastName');
+        let allExhibitions = users.flatMap(user => user.exhibitions
+            .filter(exhibition => !isPublicOnly || exhibition.isPublic)
+            .map(exhibition => ({
+            ...exhibition.toObject(),
+            curator: {
+                username: user.username,
+                fullName: user.fullName
+            }
+        })));
+        // Sort by createdAt descending (most recent first)
+        allExhibitions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        // Apply offset and limit
+        allExhibitions = allExhibitions.slice(offset, offset + limit);
+        return allExhibitions;
+    }
+    catch (error) {
+        console.error('Error fetching all exhibitions:', error);
+        throw new Error('Failed to fetch all exhibitions');
+    }
+};
+exports.fetchAllExhibitions = fetchAllExhibitions;
 const User_1 = require("./User");
 // Fetch all exhibitions for a user
 const fetchUserExhibitions = async (userId) => {

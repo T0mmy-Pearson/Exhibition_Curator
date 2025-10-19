@@ -1,3 +1,4 @@
+export declare const fetchAllExhibitions: (isPublicOnly?: boolean, limit?: number, offset?: number) => Promise<any[]>;
 interface ExhibitionData {
     title: string;
     description?: string;

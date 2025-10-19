@@ -33,8 +33,24 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTrendingExhibitions = exports.getFeaturedExhibitions = exports.searchExhibitions = exports.unshareExhibition = exports.shareExhibition = exports.getSharedExhibition = exports.getPublicExhibitions = exports.updateArtworkInExhibition = exports.removeArtworkFromExhibition = exports.addArtworkToExhibition = exports.deleteExhibition = exports.updateExhibition = exports.createExhibition = exports.getExhibitionById = exports.getExhibitions = void 0;
+exports.getTrendingExhibitions = exports.getFeaturedExhibitions = exports.searchExhibitions = exports.unshareExhibition = exports.shareExhibition = exports.getSharedExhibition = exports.getPublicExhibitions = exports.updateArtworkInExhibition = exports.removeArtworkFromExhibition = exports.addArtworkToExhibition = exports.deleteExhibition = exports.updateExhibition = exports.createExhibition = exports.getExhibitionById = exports.getExhibitions = exports.getAllExhibitions = void 0;
+// Get all exhibitions (not just current user's)
+const getAllExhibitions = async (req, res, next) => {
+    try {
+        const { publicOnly = 'false', limit = '100', offset = '0' } = req.query;
+        const isPublicOnly = publicOnly === 'true';
+        const limitNum = parseInt(limit, 10);
+        const offsetNum = parseInt(offset, 10);
+        const exhibitions = await exhibitionModel.fetchAllExhibitions(isPublicOnly, limitNum, offsetNum);
+        res.status(200).json({ exhibitions });
+    }
+    catch (err) {
+        next(err);
+    }
+};
+exports.getAllExhibitions = getAllExhibitions;
 const exhibitionModel = __importStar(require("../models/exhibitions"));
+const User_1 = require("../models/User");
 const getExhibitions = async (req, res, next) => {
     try {
         const userId = req.user?.userId;
@@ -45,7 +61,16 @@ const getExhibitions = async (req, res, next) => {
             });
         }
         const exhibitions = await exhibitionModel.fetchUserExhibitions(userId);
-        res.status(200).json({ exhibitions });
+        // Enhance exhibitions with curator info
+        const user = await User_1.User.findById(userId).select('username firstName lastName');
+        const enhancedExhibitions = exhibitions.map((exhibition) => ({
+            ...exhibition.toObject(),
+            curator: {
+                username: user?.username,
+                fullName: user?.fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim()
+            }
+        }));
+        res.status(200).json({ exhibitions: enhancedExhibitions });
     }
     catch (err) {
         next(err);
@@ -57,7 +82,16 @@ const getExhibitionById = async (req, res, next) => {
         const { exhibition_id } = req.params;
         const userId = req.user?.userId;
         const exhibition = await exhibitionModel.fetchExhibitionById(userId, exhibition_id);
-        res.status(200).json({ exhibition });
+        // Enhance exhibition with curator info
+        const user = await User_1.User.findById(userId).select('username firstName lastName');
+        const enhancedExhibition = {
+            ...exhibition.toObject(),
+            curator: {
+                username: user?.username,
+                fullName: user?.fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim()
+            }
+        };
+        res.status(200).json({ exhibition: enhancedExhibition });
     }
     catch (err) {
         next(err);
@@ -95,7 +129,16 @@ const createExhibition = async (req, res, next) => {
             tags,
             coverImageUrl
         });
-        res.status(201).json({ exhibition });
+        // Enhance exhibition with curator info
+        const user = await User_1.User.findById(userId).select('username firstName lastName');
+        const enhancedExhibition = {
+            ...exhibition.toObject(),
+            curator: {
+                username: user?.username,
+                fullName: user?.fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim()
+            }
+        };
+        res.status(201).json({ exhibition: enhancedExhibition });
     }
     catch (err) {
         next(err);
@@ -410,6 +453,7 @@ const unshareExhibition = async (req, res, next) => {
     }
 };
 exports.unshareExhibition = unshareExhibition;
+// Search exhibitions, or return all if query is blank
 const searchExhibitions = async (req, res, next) => {
     try {
         const { q: query, page = '1', limit = '20', publicOnly = 'false', theme, curator, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
@@ -418,14 +462,15 @@ const searchExhibitions = async (req, res, next) => {
         const limitNum = parseInt(limit, 10);
         const offset = (pageNum - 1) * limitNum;
         const isPublicOnly = publicOnly === 'true';
-        if (!query || typeof query !== 'string') {
-            return res.status(400).json({
-                error: 'Invalid request',
-                message: 'Search query is required'
-            });
+        let exhibitions;
+        if (!query || typeof query !== 'string' || query.trim() === '') {
+            // Return all exhibitions if query is blank
+            exhibitions = await exhibitionModel.fetchAllExhibitions(isPublicOnly, limitNum * 3, 0);
         }
-        // Search exhibitions
-        let exhibitions = await exhibitionModel.searchExhibitions(query, isPublicOnly, limitNum * 3, 0); // Get more results to filter
+        else {
+            // Search exhibitions
+            exhibitions = await exhibitionModel.searchExhibitions(query, isPublicOnly, limitNum * 3, 0);
+        }
         // Additional filtering
         if (theme && typeof theme === 'string') {
             exhibitions = exhibitions.filter((exhibition) => exhibition.theme?.toLowerCase().includes(theme.toLowerCase()));
@@ -483,7 +528,6 @@ const searchExhibitions = async (req, res, next) => {
             createdAt: exhibition.createdAt,
             updatedAt: exhibition.updatedAt,
             curator: exhibition.curator,
-            // Only include full artworks for user's own exhibitions
             ...(exhibition.curator?.username === userId && {
                 artworks: exhibition.artworks || []
             })

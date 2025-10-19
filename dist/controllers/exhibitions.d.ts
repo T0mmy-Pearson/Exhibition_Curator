@@ -1,3 +1,4 @@
+export declare const getAllExhibitions: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 import { Request, Response, NextFunction } from 'express';
 interface AuthenticatedRequest extends Request {
     user?: {
@@ -18,7 +19,7 @@ export declare const getPublicExhibitions: (req: Request, res: Response, next: N
 export declare const getSharedExhibition: (req: Request, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const shareExhibition: (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
 export declare const unshareExhibition: (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
-export declare const searchExhibitions: (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<Response<any, Record<string, any>> | undefined>;
+export declare const searchExhibitions: (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void>;
 export declare const getFeaturedExhibitions: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 export declare const getTrendingExhibitions: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 export {};

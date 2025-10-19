@@ -19,9 +19,30 @@ const getUserFavorites = async (req, res, next) => {
                 message: 'User account not found'
             });
         }
+        // Transform data to match frontend StandardizedArtwork interface
+        const transformedFavorites = user.favoriteArtworks.map(artwork => ({
+            id: artwork.artworkId, // Map artworkId to id for frontend compatibility
+            source: artwork.museumSource || 'met',
+            title: artwork.title,
+            artist: artwork.artist || 'Unknown Artist',
+            culture: artwork.culture,
+            date: artwork.date,
+            medium: artwork.medium,
+            dimensions: artwork.dimensions,
+            department: artwork.department,
+            description: artwork.description,
+            imageUrl: artwork.imageUrl || artwork.primaryImageSmall,
+            smallImageUrl: artwork.primaryImageSmall,
+            additionalImages: artwork.additionalImages,
+            museumUrl: artwork.objectURL,
+            isHighlight: artwork.isHighlight,
+            tags: artwork.tags,
+            // Keep original artworkId for internal operations
+            artworkId: artwork.artworkId
+        }));
         res.status(200).json({
-            favorites: user.favoriteArtworks,
-            total: user.favoriteArtworks.length
+            favorites: transformedFavorites,
+            total: transformedFavorites.length
         });
     }
     catch (err) {
@@ -41,13 +62,47 @@ const addToFavorites = async (req, res, next) => {
                 message: 'Authentication required'
             });
         }
-        // Validate artwork data
-        if (!artworkData || !artworkData.artworkId || !artworkData.title) {
+        // Validate artwork data with detailed error messages
+        if (!artworkData) {
             return res.status(400).json({
-                error: 'Invalid artwork data',
-                message: 'Artwork ID and title are required'
+                error: 'Invalid request',
+                message: 'Artwork data is required'
             });
         }
+        // Accept either artworkId (internal) or id (frontend) format
+        const artworkId = artworkData.artworkId || artworkData.id;
+        const title = artworkData.title;
+        if (!artworkId || artworkId.trim() === '') {
+            return res.status(400).json({
+                error: 'Invalid artwork data',
+                message: 'Artwork ID is required and cannot be empty'
+            });
+        }
+        if (!title || title.trim() === '') {
+            return res.status(400).json({
+                error: 'Invalid artwork data',
+                message: 'Artwork title is required and cannot be empty'
+            });
+        }
+        // Normalize the artwork data to internal format
+        const normalizedArtworkData = {
+            artworkId: artworkId,
+            title: title,
+            artist: artworkData.artist || 'Unknown Artist',
+            culture: artworkData.culture,
+            date: artworkData.date,
+            medium: artworkData.medium,
+            dimensions: artworkData.dimensions,
+            department: artworkData.department,
+            description: artworkData.description,
+            imageUrl: artworkData.imageUrl,
+            primaryImageSmall: artworkData.smallImageUrl || artworkData.imageUrl,
+            additionalImages: artworkData.additionalImages || [],
+            objectURL: artworkData.museumUrl,
+            isHighlight: artworkData.isHighlight || false,
+            tags: artworkData.tags || [],
+            museumSource: artworkData.source || 'met'
+        };
         const user = await User_1.User.findById(userId);
         if (!user) {
             return res.status(404).json({
@@ -56,7 +111,7 @@ const addToFavorites = async (req, res, next) => {
             });
         }
         // Check if artwork is already in favorites
-        const alreadyFavorited = user.favoriteArtworks.some((artwork) => artwork.artworkId === artworkData.artworkId);
+        const alreadyFavorited = user.favoriteArtworks.some((artwork) => artwork.artworkId === normalizedArtworkData.artworkId);
         if (alreadyFavorited) {
             return res.status(409).json({
                 error: 'Already favorited',
@@ -65,12 +120,12 @@ const addToFavorites = async (req, res, next) => {
         }
         // Add to favorites
         await user.addToFavorites({
-            ...artworkData,
+            ...normalizedArtworkData,
             addedAt: new Date()
         });
         res.status(201).json({
             message: 'Artwork added to favorites successfully',
-            artwork: artworkData
+            artwork: normalizedArtworkData
         });
     }
     catch (err) {

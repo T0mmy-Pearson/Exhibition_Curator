@@ -65,41 +65,37 @@ export default function SearchPage() {
   const searchExhibitions = useCallback(async (filters: SearchFilters) => {
     // Check rate limiting
     if (!checkRateLimit()) {
-      console.log('� Search blocked due to rate limiting');
+      console.log('🚦 Search blocked due to rate limiting');
       return;
     }
 
-    console.log('�🔍 Starting exhibition search with filters:', filters);
+    console.log(' Starting exhibition search with filters:', filters);
     setLoading(true);
     setError(null);
     setIsRateLimited(false);
 
     try {
       const params = new URLSearchParams();
-      
-      if (filters.query) params.append('q', filters.query);
+      if (filters.query) {
+        params.append('q', filters.query);
+      }
       if (filters.theme && filters.theme !== 'All Themes') params.append('theme', filters.theme);
       params.append('sortBy', filters.sortBy);
       params.append('sortOrder', filters.sortOrder);
       params.append('limit', '50');
 
-      // Always use the search endpoint - no public/private distinction
-      const endpoint = '/exhibitions/search';
+  // Use the all exhibitions endpoint (public/private distinction removed)
+  const endpoint = '/exhibitions';
 
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'http://localhost:9090/api');
-      
-      // For search endpoint, we need a query parameter
-      // Use a broad search term that should match most exhibitions
-      const searchQuery = filters.query || 'art'; // Use "art" as default broad search term
-      params.set('q', searchQuery);
       const fullUrl = `${API_BASE_URL}${endpoint}?${params}`;
-      
+
       console.log('🌐 API_BASE_URL:', API_BASE_URL);
       console.log('📍 Endpoint:', endpoint);
       console.log('📋 Params:', params.toString());
       console.log('🔗 Full URL:', fullUrl);
       console.log('🔐 Has token:', !!token);
-      
+
       const requestOptions = {
         headers: {
           'Content-Type': 'application/json',
@@ -107,16 +103,15 @@ export default function SearchPage() {
         }
       };
       console.log('📦 Request options:', requestOptions);
-      
+
       const response = await fetch(fullUrl, requestOptions);
 
       console.log('📬 Response status:', response.status);
       console.log('📬 Response ok:', response.ok);
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error('❌ Response error text:', errorText);
-        
         // Handle rate limiting specifically
         if (response.status === 429) {
           setIsRateLimited(true);
@@ -290,15 +285,15 @@ export default function SearchPage() {
         // Clear artwork data when switching to exhibitions
         setArtworks([]);
         setError(null);
-        
-        // Load exhibitions automatically
-        console.log('🏛️ Loading exhibitions...');
+
+        // Load all exhibitions automatically (no query param)
+        console.log('🏛️ Loading all exhibitions...');
         searchExhibitions({
-          query: '', // Will default to "art" search term
-          theme: 'All Themes', 
+          query: '', // Blank query triggers all exhibitions
+          theme: 'All Themes',
           sortBy: 'createdAt',
           sortOrder: 'desc',
-          publicOnly: false // This parameter is now ignored but kept for compatibility
+          publicOnly: false
         });
       } else {
         // Clear exhibition data when switching to artworks

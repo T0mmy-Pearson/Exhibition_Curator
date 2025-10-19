@@ -34,9 +34,10 @@ exhibitionsRouter.get('/trending', getTrendingExhibitions);
 exhibitionsRouter.get('/', getAllExhibitions);
 
 // Protected routes (authentication required)
-exhibitionsRouter.use(authenticateToken);
 
-// Personal exhibition management
+
+// Personal exhibition management (protected)
+exhibitionsRouter.use(authenticateToken);
 exhibitionsRouter.get('/user', getExhibitions);
 exhibitionsRouter.post('/', createExhibition);
 exhibitionsRouter.get('/:exhibition_id', getExhibitionById);

@@ -20,7 +20,7 @@ exports.apiRouter.use('/exhibitions', exhibitions_1.exhibitionsRouter);
 exports.apiRouter.use('/favorites', favorites_1.favoritesRouter);
 exports.apiRouter.get('/', (req, res) => {
     res.json({
-        message: 'Exhibition Curator API',
+        message: 'The Curator API',
         version: '1.0.0',
         endpoints: {
             auth: '/api/auth',
