@@ -15,8 +15,9 @@ exports.exhibitionsRouter.get('/trending', exhibitions_1.getTrendingExhibitions)
 // All exhibitions (public route)
 exports.exhibitionsRouter.get('/', exhibitions_1.getAllExhibitions);
 // Protected routes (authentication required)
+// Personal exhibition management (protected)
+// Protected routes (authentication required)
 exports.exhibitionsRouter.use(auth_1.authenticateToken);
-// Personal exhibition management
 exports.exhibitionsRouter.get('/user', exhibitions_1.getExhibitions);
 exports.exhibitionsRouter.post('/', exhibitions_1.createExhibition);
 exports.exhibitionsRouter.get('/:exhibition_id', exhibitions_1.getExhibitionById);

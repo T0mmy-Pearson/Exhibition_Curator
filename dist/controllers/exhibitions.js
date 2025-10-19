@@ -34,14 +34,15 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getTrendingExhibitions = exports.getFeaturedExhibitions = exports.searchExhibitions = exports.unshareExhibition = exports.shareExhibition = exports.getSharedExhibition = exports.getPublicExhibitions = exports.updateArtworkInExhibition = exports.removeArtworkFromExhibition = exports.addArtworkToExhibition = exports.deleteExhibition = exports.updateExhibition = exports.createExhibition = exports.getExhibitionById = exports.getExhibitions = exports.getAllExhibitions = void 0;
+const exhibitionModel = __importStar(require("../models/exhibitions"));
+const User_1 = require("../models/User");
 // Get all exhibitions (not just current user's)
 const getAllExhibitions = async (req, res, next) => {
     try {
-        const { publicOnly = 'false', limit = '100', offset = '0' } = req.query;
-        const isPublicOnly = publicOnly === 'true';
+        const { limit = '100', offset = '0' } = req.query;
         const limitNum = parseInt(limit, 10);
         const offsetNum = parseInt(offset, 10);
-        const exhibitions = await exhibitionModel.fetchAllExhibitions(isPublicOnly, limitNum, offsetNum);
+        const exhibitions = await exhibitionModel.fetchAllExhibitions(limitNum, offsetNum);
         res.status(200).json({ exhibitions });
     }
     catch (err) {
@@ -49,8 +50,6 @@ const getAllExhibitions = async (req, res, next) => {
     }
 };
 exports.getAllExhibitions = getAllExhibitions;
-const exhibitionModel = __importStar(require("../models/exhibitions"));
-const User_1 = require("../models/User");
 const getExhibitions = async (req, res, next) => {
     try {
         const userId = req.user?.userId;
@@ -107,12 +106,11 @@ const createExhibition = async (req, res, next) => {
                 message: 'Request body is empty or invalid'
             });
         }
-        const { title, description, theme, isPublic = false, tags, coverImageUrl } = req.body;
+        const { title, description, theme, tags, coverImageUrl } = req.body;
         const userId = req.user?.userId;
         if (!userId) {
             return res.status(401).json({
                 error: 'Unauthorized',
-                message: 'Authentication required'
             });
         }
         if (!title || title.trim().length === 0) {
@@ -125,7 +123,6 @@ const createExhibition = async (req, res, next) => {
             title,
             description,
             theme,
-            isPublic,
             tags,
             coverImageUrl
         });
@@ -256,10 +253,10 @@ const getPublicExhibitions = async (req, res, next) => {
         let exhibitions;
         // If search query provided, use search function
         if (search && typeof search === 'string') {
-            exhibitions = await exhibitionModel.searchExhibitions(search, true, limitNum, offset);
+            exhibitions = await exhibitionModel.searchExhibitions(search, limitNum, offset);
         }
         else {
-            exhibitions = await exhibitionModel.fetchPublicExhibitions(limitNum, offset);
+            exhibitions = await exhibitionModel.fetchAllExhibitions(limitNum, offset);
         }
         // Filter by theme if specified
         if (theme && typeof theme === 'string') {
@@ -300,7 +297,6 @@ const getPublicExhibitions = async (req, res, next) => {
             title: exhibition.title,
             description: exhibition.description,
             theme: exhibition.theme,
-            isPublic: exhibition.isPublic,
             shareableLink: exhibition.shareableLink,
             artworksCount: exhibition.artworks?.length || 0,
             coverImageUrl: exhibition.coverImageUrl,
@@ -351,20 +347,20 @@ const getSharedExhibition = async (req, res, next) => {
             });
         }
         // Format exhibition for response
+        const ex = exhibition;
         const formattedExhibition = {
-            id: exhibition._id,
-            title: exhibition.title,
-            description: exhibition.description,
-            theme: exhibition.theme,
-            isPublic: exhibition.isPublic,
-            shareableLink: exhibition.shareableLink,
-            artworks: exhibition.artworks || [],
-            artworksCount: exhibition.artworks?.length || 0,
-            coverImageUrl: exhibition.coverImageUrl,
-            tags: exhibition.tags || [],
-            createdAt: exhibition.createdAt,
-            updatedAt: exhibition.updatedAt,
-            curator: exhibition.curator
+            id: ex._id,
+            title: ex.title,
+            description: ex.description,
+            theme: ex.theme,
+            shareableLink: ex.shareableLink,
+            artworks: ex.artworks || [],
+            artworksCount: ex.artworks?.length || 0,
+            coverImageUrl: ex.coverImageUrl,
+            tags: ex.tags || [],
+            createdAt: ex.createdAt,
+            updatedAt: ex.updatedAt,
+            curator: ex.curator
         };
         res.status(200).json({
             message: 'Shared exhibition retrieved successfully',
@@ -392,16 +388,13 @@ const shareExhibition = async (req, res, next) => {
                 message: 'Authentication required'
             });
         }
-        // Update exhibition to be public
-        const exhibition = await exhibitionModel.updateExhibitionById(userId, exhibition_id, {
-            isPublic: true
-        });
+        // No longer need to update isPublic, just return exhibition
+        const exhibition = await exhibitionModel.updateExhibitionById(userId, exhibition_id, {});
         res.status(200).json({
             message: 'Exhibition shared successfully',
             exhibition: {
                 id: exhibition._id,
                 title: exhibition.title,
-                isPublic: exhibition.isPublic,
                 shareableLink: exhibition.shareableLink
             },
             shareableUrl: `${req.protocol}://${req.get('host')}/shared/${exhibition.shareableLink}`
@@ -428,16 +421,13 @@ const unshareExhibition = async (req, res, next) => {
                 message: 'Authentication required'
             });
         }
-        // Update exhibition to be private
-        const exhibition = await exhibitionModel.updateExhibitionById(userId, exhibition_id, {
-            isPublic: false
-        });
+        // No longer need to update isPublic, just return exhibition
+        const exhibition = await exhibitionModel.updateExhibitionById(userId, exhibition_id, {});
         res.status(200).json({
             message: 'Exhibition unshared successfully',
             exhibition: {
                 id: exhibition._id,
                 title: exhibition.title,
-                isPublic: exhibition.isPublic,
                 shareableLink: exhibition.shareableLink
             }
         });
@@ -461,15 +451,14 @@ const searchExhibitions = async (req, res, next) => {
         const pageNum = parseInt(page, 10);
         const limitNum = parseInt(limit, 10);
         const offset = (pageNum - 1) * limitNum;
-        const isPublicOnly = publicOnly === 'true';
         let exhibitions;
         if (!query || typeof query !== 'string' || query.trim() === '') {
             // Return all exhibitions if query is blank
-            exhibitions = await exhibitionModel.fetchAllExhibitions(isPublicOnly, limitNum * 3, 0);
+            exhibitions = await exhibitionModel.fetchAllExhibitions(limitNum * 3, 0);
         }
         else {
             // Search exhibitions
-            exhibitions = await exhibitionModel.searchExhibitions(query, isPublicOnly, limitNum * 3, 0);
+            exhibitions = await exhibitionModel.searchExhibitions(query, limitNum * 3, 0);
         }
         // Additional filtering
         if (theme && typeof theme === 'string') {
@@ -520,17 +509,13 @@ const searchExhibitions = async (req, res, next) => {
             title: exhibition.title,
             description: exhibition.description,
             theme: exhibition.theme,
-            isPublic: exhibition.isPublic,
             shareableLink: exhibition.shareableLink,
             artworksCount: exhibition.artworks?.length || 0,
             coverImageUrl: exhibition.coverImageUrl,
             tags: exhibition.tags || [],
             createdAt: exhibition.createdAt,
             updatedAt: exhibition.updatedAt,
-            curator: exhibition.curator,
-            ...(exhibition.curator?.username === userId && {
-                artworks: exhibition.artworks || []
-            })
+            curator: exhibition.curator
         }));
         res.status(200).json({
             message: 'Exhibition search completed successfully',
@@ -545,7 +530,6 @@ const searchExhibitions = async (req, res, next) => {
                 hasPrev: pageNum > 1
             },
             filters: {
-                publicOnly: isPublicOnly,
                 theme: theme || null,
                 curator: curator || null,
                 sortBy,
@@ -563,7 +547,7 @@ const getFeaturedExhibitions = async (req, res, next) => {
         const { limit = '10' } = req.query;
         const limitNum = parseInt(limit, 10);
         // Get public exhibitions and apply featured logic
-        const exhibitions = await exhibitionModel.fetchPublicExhibitions(limitNum * 2, 0);
+        const exhibitions = await exhibitionModel.fetchAllExhibitions(limitNum * 2, 0);
         // Featured exhibitions logic: exhibitions with more artworks, recent activity, or specific tags
         const featuredExhibitions = exhibitions
             .filter((exhibition) => {
@@ -585,7 +569,6 @@ const getFeaturedExhibitions = async (req, res, next) => {
             title: exhibition.title,
             description: exhibition.description,
             theme: exhibition.theme,
-            isPublic: exhibition.isPublic,
             shareableLink: exhibition.shareableLink,
             artworksCount: exhibition.artworks?.length || 0,
             coverImageUrl: exhibition.coverImageUrl,
@@ -613,7 +596,7 @@ const getTrendingExhibitions = async (req, res, next) => {
         const limitNum = parseInt(limit, 10);
         const daysNum = parseInt(days, 10);
         // Get public exhibitions
-        const exhibitions = await exhibitionModel.fetchPublicExhibitions(limitNum * 2, 0);
+        const exhibitions = await exhibitionModel.fetchAllExhibitions(limitNum * 2, 0);
         // Trending logic: recently created or updated exhibitions
         const cutoffDate = new Date(Date.now() - daysNum * 24 * 60 * 60 * 1000);
         const trendingExhibitions = exhibitions
@@ -638,7 +621,6 @@ const getTrendingExhibitions = async (req, res, next) => {
             title: exhibition.title,
             description: exhibition.description,
             theme: exhibition.theme,
-            isPublic: exhibition.isPublic,
             shareableLink: exhibition.shareableLink,
             artworksCount: exhibition.artworks?.length || 0,
             coverImageUrl: exhibition.coverImageUrl,

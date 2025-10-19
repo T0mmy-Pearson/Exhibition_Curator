@@ -61,7 +61,6 @@ const ExhibitionSchema = new mongoose_1.Schema({
     title: { type: String, required: true },
     description: { type: String },
     theme: { type: String },
-    isPublic: { type: Boolean, default: false },
     shareableLink: { type: String },
     artworks: [ArtworkSchema], // Embedded artworks
     createdAt: { type: Date, default: Date.now },
@@ -114,7 +113,6 @@ const UserSchema = new mongoose_1.Schema({
 UserSchema.index({ email: 1 });
 UserSchema.index({ username: 1 });
 UserSchema.index({ 'exhibitions.title': 1 });
-UserSchema.index({ 'exhibitions.isPublic': 1 });
 UserSchema.index({ 'exhibitions.shareableLink': 1 });
 // Virtual for full name
 UserSchema.virtual('fullName').get(function () {

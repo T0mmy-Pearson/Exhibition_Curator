@@ -1,5 +1,5 @@
-export declare const getAllExhibitions: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 import { Request, Response, NextFunction } from 'express';
+export declare const getAllExhibitions: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 interface AuthenticatedRequest extends Request {
     user?: {
         userId: string;

@@ -1,12 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.searchExhibitions = exports.removeArtworkFromExhibition = exports.addArtworkToExhibition = exports.removeExhibitionById = exports.updateExhibitionById = exports.insertExhibition = exports.fetchExhibitionByShareableLink = exports.fetchExhibitionById = exports.fetchPublicExhibitions = exports.fetchUserExhibitions = exports.fetchAllExhibitions = void 0;
+exports.searchExhibitions = exports.removeArtworkFromExhibition = exports.addArtworkToExhibition = exports.removeExhibitionById = exports.updateExhibitionById = exports.insertExhibition = exports.fetchExhibitionByShareableLink = exports.fetchExhibitionById = exports.fetchUserExhibitions = exports.fetchAllExhibitions = void 0;
 // Fetch all exhibitions (optionally only public) && 
-const fetchAllExhibitions = async (isPublicOnly = false, limit = 20, offset = 0) => {
+const fetchAllExhibitions = async (limit = 20, offset = 0) => {
     try {
         const users = await User_1.User.find({}, 'exhibitions username firstName lastName');
         let allExhibitions = users.flatMap(user => user.exhibitions
-            .filter(exhibition => !isPublicOnly || exhibition.isPublic)
             .map(exhibition => ({
             ...exhibition.toObject(),
             curator: {
@@ -42,29 +41,6 @@ const fetchUserExhibitions = async (userId) => {
     }
 };
 exports.fetchUserExhibitions = fetchUserExhibitions;
-// Fetch public exhibitions (for sharing)
-const fetchPublicExhibitions = async (limit = 20, offset = 0) => {
-    try {
-        const users = await User_1.User.find({ 'exhibitions.isPublic': true }, { 'exhibitions.$': 1, username: 1, firstName: 1, lastName: 1 })
-            .skip(offset)
-            .limit(limit);
-        const publicExhibitions = users.flatMap(user => user.exhibitions
-            .filter(exhibition => exhibition.isPublic)
-            .map(exhibition => ({
-            ...exhibition.toObject(),
-            curator: {
-                username: user.username,
-                fullName: user.fullName
-            }
-        })));
-        return publicExhibitions;
-    }
-    catch (error) {
-        console.error('Error fetching public exhibitions:', error);
-        throw new Error('Failed to fetch public exhibitions');
-    }
-};
-exports.fetchPublicExhibitions = fetchPublicExhibitions;
 // Fetch single exhibition by ID
 const fetchExhibitionById = async (userId, exhibitionId) => {
     try {
@@ -86,24 +62,8 @@ const fetchExhibitionById = async (userId, exhibitionId) => {
 exports.fetchExhibitionById = fetchExhibitionById;
 // Fetch public exhibition by shareable link
 const fetchExhibitionByShareableLink = async (shareableLink) => {
-    try {
-        const user = await User_1.User.findOne({ 'exhibitions.shareableLink': shareableLink, 'exhibitions.isPublic': true }, { 'exhibitions.$': 1, username: 1, firstName: 1, lastName: 1 });
-        if (!user || !user.exhibitions.length) {
-            throw new Error('Exhibition not found or not public');
-        }
-        const exhibition = user.exhibitions[0];
-        return {
-            ...exhibition.toObject(),
-            curator: {
-                username: user.username,
-                fullName: user.fullName
-            }
-        };
-    }
-    catch (error) {
-        console.error('Error fetching exhibition by shareable link:', error);
-        throw new Error('Exhibition not found');
-    }
+    // This function is deprecated since isPublic is removed
+    return null;
 };
 exports.fetchExhibitionByShareableLink = fetchExhibitionByShareableLink;
 // Create new exhibition
@@ -117,18 +77,12 @@ const insertExhibition = async (userId, exhibitionData) => {
         if (!exhibitionData.title || exhibitionData.title.trim().length === 0) {
             throw new Error('Exhibition title is required');
         }
-        // Generate shareable link if exhibition is public
-        const shareableLink = exhibitionData.isPublic
-            ? generateShareableLink(exhibitionData.title, userId)
-            : undefined;
         const newExhibitionData = {
             title: exhibitionData.title,
             description: exhibitionData.description || '',
             theme: exhibitionData.theme || '',
-            isPublic: exhibitionData.isPublic || false,
             tags: exhibitionData.tags || [],
             coverImageUrl: exhibitionData.coverImageUrl || '',
-            shareableLink,
             artworks: [], // Start with empty artworks array
             createdAt: new Date(),
             updatedAt: new Date()
@@ -158,15 +112,6 @@ const updateExhibitionById = async (userId, exhibitionId, updates) => {
         }
         // Update exhibition fields
         Object.assign(exhibition, updates);
-        // Update shareable link if publicity status changed
-        if (updates.isPublic !== undefined) {
-            if (updates.isPublic) {
-                exhibition.shareableLink = generateShareableLink(exhibition.title, userId);
-            }
-            else {
-                exhibition.shareableLink = undefined;
-            }
-        }
         exhibition.updatedAt = new Date();
         user.updatedAt = new Date();
         await user.save();
@@ -238,7 +183,7 @@ const removeArtworkFromExhibition = async (userId, exhibitionId, artworkId) => {
 };
 exports.removeArtworkFromExhibition = removeArtworkFromExhibition;
 // Search exhibitions by title or theme
-const searchExhibitions = async (query, isPublicOnly = false, limit = 20, offset = 0) => {
+const searchExhibitions = async (query, limit = 20, offset = 0) => {
     try {
         const searchRegex = new RegExp(query, 'i');
         const matchConditions = {
@@ -249,9 +194,6 @@ const searchExhibitions = async (query, isPublicOnly = false, limit = 20, offset
                 { 'exhibitions.tags': { $in: [searchRegex] } }
             ]
         };
-        if (isPublicOnly) {
-            matchConditions['exhibitions.isPublic'] = true;
-        }
         const users = await User_1.User.find(matchConditions)
             .select('exhibitions username firstName lastName')
             .skip(offset)
@@ -262,7 +204,7 @@ const searchExhibitions = async (query, isPublicOnly = false, limit = 20, offset
                 exhibition.description?.match(searchRegex) ||
                 exhibition.theme?.match(searchRegex) ||
                 exhibition.tags?.some((tag) => tag.match(searchRegex));
-            return matchesQuery && (!isPublicOnly || exhibition.isPublic);
+            return matchesQuery;
         })
             .map(exhibition => ({
             ...exhibition.toObject(),
