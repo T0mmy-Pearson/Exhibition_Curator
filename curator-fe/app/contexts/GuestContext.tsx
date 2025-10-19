@@ -206,7 +206,7 @@ export function GuestProvider({ children }: GuestProviderProps) {
       // User is logged in and no guest data, ensure localStorage is clean
       clearGuestData();
     }
-  }, [user]);
+  }, [user, guestExhibitions.length]);
 
   const hasGuestData = guestExhibitions.length > 0;
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function UserProfile() {
@@ -22,10 +23,13 @@ export default function UserProfile() {
         {/* Avatar */}
         <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
           {user.profileImageUrl ? (
-            <img
+            <Image
               src={user.profileImageUrl}
               alt={user.fullName || user.username}
+              width={32}
+              height={32}
               className="w-8 h-8 rounded-full object-cover"
+              priority
             />
           ) : (
             <span className="text-white text-sm font-medium">{initials}</span>

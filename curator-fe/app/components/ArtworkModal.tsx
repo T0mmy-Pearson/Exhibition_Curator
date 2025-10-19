@@ -197,7 +197,7 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [isOpen, allImages.length]);
+  }, [isOpen, allImages.length, onClose]);
 
   if (!isOpen || !artwork) return null;
 

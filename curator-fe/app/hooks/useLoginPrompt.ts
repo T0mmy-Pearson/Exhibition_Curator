@@ -13,34 +13,12 @@ interface LoginPromptState {
 
 export function useLoginPrompt() {
   const { user } = useAuth();
-  const [promptState, setPromptState] = useState<LoginPromptState>({
-    isOpen: false,
-    trigger: 'manual'
-  });
-
-  // Check if user is visiting for the first time
-  useEffect(() => {
-    const hasVisited = localStorage.getItem('exhibition-curator-visited');
-    const welcomeShown = localStorage.getItem('exhibition-curator-welcome-shown');
-    
-    // Show welcome modal on first visit if not logged in
-    if (!hasVisited && !user && !welcomeShown) {
-      const timer = setTimeout(() => {
-        showLoginPrompt('first-visit');
-        localStorage.setItem('exhibition-curator-visited', 'true');
-      }, 2000); // Show after 2 seconds to let the page load
-      
-      return () => clearTimeout(timer);
-    } else if (!hasVisited) {
-      localStorage.setItem('exhibition-curator-visited', 'true');
-    }
-  }, [user]);
 
   const showLoginPrompt = useCallback((
     trigger: LoginTrigger, 
     options?: { artworkTitle?: string; onSuccess?: () => void }
   ) => {
-    // Don't show prompt if user is already logged in
+
     if (user) {
       if (options?.onSuccess) {
         options.onSuccess();
@@ -56,6 +34,32 @@ export function useLoginPrompt() {
     });
     return true;
   }, [user]);
+  const [promptState, setPromptState] = useState<LoginPromptState>({
+    isOpen: false,
+    trigger: 'manual'
+  });
+
+
+
+
+
+  // Check if user is visiting for the first time
+  useEffect(() => {
+    const hasVisited = localStorage.getItem('exhibition-curator-visited');
+    const welcomeShown = localStorage.getItem('exhibition-curator-welcome-shown');
+
+    if (!hasVisited && !user && !welcomeShown) {
+      const timer = setTimeout(() => {
+        showLoginPrompt('first-visit');
+        localStorage.setItem('exhibition-curator-visited', 'true');
+      }, 2000); // Show after 2 seconds to let the page load
+      return () => clearTimeout(timer);
+    }
+    else if (!hasVisited) {
+      localStorage.setItem('exhibition-curator-visited', 'true');
+    }
+  }, [user, showLoginPrompt]);
+
 
   const hideLoginPrompt = useCallback(() => {
     // Mark welcome as shown when modal is closed

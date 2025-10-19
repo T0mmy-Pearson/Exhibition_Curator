@@ -118,6 +118,16 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
     }
   }, [router]);
 
+
+  const completeTutorial = useCallback(() => {
+    setIsActive(false);
+    setCurrentFlow(null);
+    setCurrentStep(0);
+    setCompletedSteps(new Set());
+    // Store completion
+    localStorage.setItem(`tutorial-completed-${currentFlow}`, 'true');
+  }, [currentFlow]);
+
   const nextStep = useCallback(() => {
     const flow = getCurrentFlow();
     if (!flow) return;
@@ -127,7 +137,7 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
     } else {
       completeTutorial();
     }
-  }, [currentStep, getCurrentFlow]);
+  }, [currentStep, getCurrentFlow, completeTutorial]);
 
   const prevStep = useCallback(() => {
     if (currentStep > 0) {
@@ -145,15 +155,6 @@ export function TutorialProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('tutorial-skipped', 'true');
   }, []);
 
-  const completeTutorial = useCallback(() => {
-    setIsActive(false);
-    setCurrentFlow(null);
-    setCurrentStep(0);
-    setCompletedSteps(new Set());
-    
-    // Store completion
-    localStorage.setItem(`tutorial-completed-${currentFlow}`, 'true');
-  }, [currentFlow]);
 
   const markStepComplete = useCallback((stepId: string) => {
     setCompletedSteps(prev => new Set([...prev, stepId]));

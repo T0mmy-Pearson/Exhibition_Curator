@@ -5,8 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '../../contexts/AuthContext';
 import Image from 'next/image';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import ErrorDisplay from '../../components/ErrorDisplay';
-// Removed Splide imports
+
 
 interface Artwork {
   artworkId: string;
@@ -48,11 +47,11 @@ export default function ExhibitionPage() {
   const [artworkDetails, setArtworkDetails] = useState<Record<string, Artwork | null>>({});
 
 const params = useParams();
-  const router = useRouter();
+  const router = useRouter(); // router is unused, can be removed if not needed
   const { token } = useAuth();
   const [exhibition, setExhibition] = useState<Exhibition | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true); // loading is unused, can be removed if not needed
+  const [error, setError] = useState<string | null>(null); // error is unused, can be removed if not needed
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -95,36 +94,9 @@ const params = useParams();
     return /^[0-9a-fA-F]{24}$/.test(str);
   };
 
-  useEffect(() => {
-    if (exhibitionIdentifier) {
-      fetchExhibition();
-    }
-  }, [exhibitionIdentifier, token]);
 
-  // Fetch full artwork details for each artwork in exhibition
-  useEffect(() => {
-    if (exhibition?.artworks?.length) {
-      exhibition.artworks.forEach(async (artwork) => {
-        if (!artworkDetails[artwork.artworkId]) {
-          try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/artworks/${artwork.artworkId}`);
-            if (res.ok) {
-              const data = await res.json();
-              console.log('Fetched artwork details:', data.artwork);
-              setArtworkDetails(prev => ({ ...prev, [artwork.artworkId]: data.artwork }));
-            } else {
-              console.warn('Artwork API request failed:', artwork.artworkId, res.status);
-              setArtworkDetails(prev => ({ ...prev, [artwork.artworkId]: null }));
-            }
-          } catch (err) {
-            console.error('Artwork API request error:', artwork.artworkId, err);
-            setArtworkDetails(prev => ({ ...prev, [artwork.artworkId]: null }));
-          }
-        }
-      });
-    }
-  }, [exhibition]);
 
+  // Fetch exhibition function must be defined before useEffect
   const fetchExhibition = async () => {
     try {
       setLoading(true);
@@ -160,8 +132,38 @@ const params = useParams();
     }
   };
 
+  useEffect(() => {
+    if (exhibitionIdentifier) {
+      fetchExhibition();
+    }
+  }, [exhibitionIdentifier, token, fetchExhibition]);
+
+  // Fetch full artwork details for each artwork in exhibition
+  useEffect(() => {
+    if (exhibition?.artworks?.length) {
+      exhibition.artworks.forEach(async (artwork) => {
+        if (!artworkDetails[artwork.artworkId]) {
+          try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/artworks/${artwork.artworkId}`);
+            if (res.ok) {
+              const data = await res.json();
+              console.log('Fetched artwork details:', data.artwork);
+              setArtworkDetails(prev => ({ ...prev, [artwork.artworkId]: data.artwork }));
+            } else {
+              console.warn('Artwork API request failed:', artwork.artworkId, res.status);
+              setArtworkDetails(prev => ({ ...prev, [artwork.artworkId]: null }));
+            }
+          } catch (err) {
+            console.error('Artwork API request error:', artwork.artworkId, err);
+            setArtworkDetails(prev => ({ ...prev, [artwork.artworkId]: null }));
+          }
+        }
+      });
+    }
+  }, [exhibition, artworkDetails]);
+
   // Helper to get best image URL for artwork, preferring fetched details
-  const getArtworkImageUrl = (artwork: any) => {
+  const getArtworkImageUrl = (artwork: Artwork) => {
     const details = artworkDetails[artwork?.artworkId];
     return details?.smallImageUrl || details?.imageUrl || details?.primaryImageSmall || artwork?.smallImageUrl || artwork?.imageUrl || artwork?.primaryImageSmall || '';
   };
