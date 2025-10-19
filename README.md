@@ -22,10 +22,10 @@ cd Exhibition_Curator
 
 ---
 
-## 2. Backend Setup (`be/`)
+## 2. Backend Setup 
 
 ```
-cd be
+backend in root directory 
 npm install
 ```
 
