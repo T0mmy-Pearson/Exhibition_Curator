@@ -546,6 +546,7 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
                     onClick={(e) => {
                       e.stopPropagation();
                       console.log('Exhibition selected:', exhibition.title);
+                      console.log('Exhibition _id:', exhibition._id, 'Type:', typeof exhibition._id);
                       addToExhibition(exhibition._id);
                     }}
                     disabled={addingToExhibition}

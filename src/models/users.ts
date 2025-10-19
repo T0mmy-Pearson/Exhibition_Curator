@@ -33,17 +33,17 @@ export const fetchUserByUsername = async (username: string): Promise<IUser | nul
 
 export const insertUser = async (userData: CreateUserData): Promise<IUser> => {
   const { password, ...otherData } = userData;
-  
   // Hash password
   const saltRounds = 10;
   const hashedPassword = await bcrypt.hash(password, saltRounds);
-  
   const user = new User({
     ...otherData,
     password: hashedPassword
   });
-  
-  return await user.save();
+  console.log('Attempting to save new user:', user);
+  const savedUser = await user.save();
+  console.log('User saved successfully:', savedUser);
+  return savedUser;
 };
 
 export const updateUserById = async (userId: string, updates: Partial<IUser>): Promise<IUser> => {

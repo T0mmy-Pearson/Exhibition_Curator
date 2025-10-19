@@ -49,3 +49,6 @@ exhibitionsRouter.delete('/:exhibition_id/artworks/:artwork_id', removeArtworkFr
 // Sharing functionality
 exhibitionsRouter.post('/:exhibition_id/share', shareExhibition);
 exhibitionsRouter.delete('/:exhibition_id/share', unshareExhibition);
+
+// Authenticated route for user's own exhibition by ID
+exhibitionsRouter.get('/:exhibition_id', authenticateToken, getExhibitionById);

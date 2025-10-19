@@ -55,11 +55,20 @@ export const fetchExhibitionById = async (userId: string, exhibitionId: string) 
       throw new Error('User not found');
     }
 
-    const exhibition = user.exhibitions.find(ex => ex._id?.toString() === exhibitionId);
+    // Compare both ObjectId and string representations for robustness
+    const mongoose = require('mongoose');
+    const exhibition = user.exhibitions.find(ex => {
+      if (!ex._id) return false;
+      // Compare as ObjectId
+      try {
+        return ex._id.equals(exhibitionId) || ex._id.toString() === exhibitionId;
+      } catch {
+        return ex._id.toString() === exhibitionId;
+      }
+    });
     if (!exhibition) {
       throw new Error('Exhibition not found');
     }
-
     return exhibition;
   } catch (error) {
     console.error('Error fetching exhibition by ID:', error);

@@ -74,13 +74,9 @@ export default function ExhibitionPage() {
       }
 
       let apiUrl: string;
-      
-      //  which API 
       if (isMongoId(exhibitionIdentifier)) {
-        // It's a MongoDB ObjectId, use the private endpoint
         apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/exhibitions/${exhibitionIdentifier}`;
       } else {
-        // It's a shareable link, use the shared endpoint
         apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/exhibitions/shared/${exhibitionIdentifier}`;
       }
 
@@ -102,109 +98,90 @@ export default function ExhibitionPage() {
     }
   };
 
-
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <LoadingSpinner size="large" message="Loading exhibition..." />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <ErrorDisplay 
-          message={error}
-          actionText="Go Back"
-          onAction={() => router.back()}
-        />
-      </div>
-    );
-  }
-
-  if (!exhibition || !exhibition.artworks || exhibition.artworks.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4 text-gray-800">
-            {!exhibition ? 'Exhibition not found' : 'No artworks in this exhibition'}
-          </h1>
-        </div>
-      </div>
-    );
-  }
-
-  // Carousel navigation handlers
-  const goToPrev = () => {
-    setCurrentIndex((prev) => (prev === 0 ? exhibition.artworks.length - 1 : prev - 1));
-  };
-  const goToNext = () => {
-    setCurrentIndex((prev) => (prev === exhibition.artworks.length - 1 ? 0 : prev + 1));
-  };
-
-  const currentArtwork = exhibition.artworks[currentIndex];
-
-  return (
-    <div className="min-h-screen bg-gray-100 py-8">
-      <div className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg p-6">
-        <h1 className="text-3xl font-bold mb-2 text-gray-900">{exhibition.title}</h1>
-        <p className="mb-4 text-gray-700">{exhibition.description}</p>
-        <div className="mb-6 text-sm text-gray-500">
-          Curated by <span className="font-semibold">{exhibition.curator.fullName || exhibition.curator.username}</span>
-        </div>
-        <div className="flex flex-col items-center">
-          <div className="relative w-full max-w-md h-96 flex items-center justify-center">
-            {/* Carousel navigation */}
-            <button
-              className="absolute left-0 top-1/2 -translate-y-1/2 bg-gray-200 hover:bg-gray-300 rounded-full p-2 z-10"
-              onClick={goToPrev}
-              aria-label="Previous artwork"
-            >
-              &#8592;
-            </button>
-            <div className="w-full h-full flex flex-col items-center justify-center">
-              {(currentArtwork.imageUrl || currentArtwork.primaryImageSmall) ? (
-                <Image
-                  src={currentArtwork.imageUrl ? currentArtwork.imageUrl : currentArtwork.primaryImageSmall as string}
-                  alt={currentArtwork.title}
-                  width={350}
-                  height={350}
-                  className="object-contain rounded-lg shadow-md mb-4"
-                />
+      // Carousel and artwork info (single block)
+      return (
+        <div className="min-h-screen bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col items-center">
+            <div className="flex items-center justify-between w-full mb-4">
+              <button
+                onClick={() => setCurrentIndex((prev) => Math.max(prev - 1, 0))}
+                disabled={currentIndex === 0}
+                className={`px-4 py-2 bg-blue-600 text-white rounded-md transition-colors ${currentIndex === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
+              >
+                ← Prev
+              </button>
+              <span className="text-lg font-medium text-gray-700">
+                {currentIndex + 1} / {exhibition?.artworks?.length ?? 0}
+              </span>
+              <button
+                onClick={() => setCurrentIndex((prev) => Math.min(prev + 1, (exhibition?.artworks?.length ?? 1) - 1))}
+                disabled={currentIndex === (exhibition?.artworks?.length ?? 1) - 1}
+                className={`px-4 py-2 bg-blue-600 text-white rounded-md transition-colors ${(currentIndex === (exhibition?.artworks?.length ?? 1) - 1) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
+              >
+                Next →
+              </button>
+            </div>
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-4xl flex flex-col items-center">
+              {(exhibition?.artworks?.[currentIndex]?.imageUrl || exhibition?.artworks?.[currentIndex]?.primaryImageSmall) ? (
+                <div className="w-full h-80 bg-gray-50 border rounded relative">
+                  <Image
+                    src={exhibition?.artworks?.[currentIndex]?.imageUrl || exhibition?.artworks?.[currentIndex]?.primaryImageSmall || ''}
+                    alt={`${exhibition?.artworks?.[currentIndex]?.title ?? 'Untitled'} by ${exhibition?.artworks?.[currentIndex]?.artist ?? 'Unknown artist'}`}
+                    fill
+                    className="object-contain rounded"
+                    sizes="(max-width: 768px) 100vw, 800px"
+                    priority={true}
+                    onError={() => {
+                      console.error('Next.js Image failed to load:', exhibition?.artworks?.[currentIndex]?.imageUrl || exhibition?.artworks?.[currentIndex]?.primaryImageSmall);
+                    }}
+                    onLoad={() => {
+                      console.log('Next.js Image loaded successfully:', exhibition?.artworks?.[currentIndex]?.imageUrl || exhibition?.artworks?.[currentIndex]?.primaryImageSmall);
+                    }}
+                  />
+                </div>
               ) : (
-                <div className="w-72 h-72 flex items-center justify-center bg-gray-100 rounded-lg mb-4">
-                  <span className="text-gray-400">No image available</span>
+                <div className="flex items-center justify-center bg-gray-200 rounded" style={{ aspectRatio: '4/3' }}>
+                  <div className="text-center text-gray-500">
+                    <svg className="mx-auto h-16 w-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 002 2z" />
+                    </svg>
+                    <p className="text-sm">Image unavailable</p>
+                  </div>
                 </div>
               )}
-              <div className="text-center">
-                <h2 className="text-xl font-semibold text-gray-800 mb-1">{currentArtwork.title}</h2>
-                {currentArtwork.artist && (
-                  <div className="text-gray-600 mb-1">by {currentArtwork.artist}</div>
-                )}
-                {currentArtwork.date && (
-                  <div className="text-gray-500 mb-1">{currentArtwork.date}</div>
-                )}
-                {currentArtwork.medium && (
-                  <div className="text-gray-500 mb-1">{currentArtwork.medium}</div>
-                )}
-                <div className="text-xs text-gray-400 mt-2">Source: {currentArtwork.museumSource}</div>
-              </div>
+              {/* Artwork Description Section */}
+              {(exhibition?.artworks?.length ?? 0) > 0 && (
+                <div className="w-full mt-8">
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">
+                    {exhibition?.artworks?.[currentIndex]?.title ?? 'Untitled'}
+                  </h2>
+                  {exhibition?.artworks?.[currentIndex]?.artist && (
+                    <p className="text-lg text-gray-700 mb-3">
+                      {exhibition?.artworks?.[currentIndex]?.artist}
+                    </p>
+                  )}
+                  <div className="space-y-2">
+                    {exhibition?.artworks?.[currentIndex]?.date && (
+                      <p className="text-gray-600">
+                        <span className="font-medium">Date:</span> {exhibition?.artworks?.[currentIndex]?.date}
+                      </p>
+                    )}
+                    {exhibition?.artworks?.[currentIndex]?.medium && (
+                      <p className="text-gray-600">
+                        <span className="font-medium">Medium:</span> {exhibition?.artworks?.[currentIndex]?.medium}
+                      </p>
+                    )}
+                    <p className="text-gray-600">
+                      <span className="font-medium">Source:</span> {exhibition?.artworks?.[currentIndex]?.museumSource ?? 'Unknown'}
+                    </p>
+                    <p className="text-gray-600">
+                      <span className="font-medium">ID:</span> {exhibition?.artworks?.[currentIndex]?.artworkId}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
-            <button
-              className="absolute right-0 top-1/2 -translate-y-1/2 bg-gray-200 hover:bg-gray-300 rounded-full p-2 z-10"
-              onClick={goToNext}
-              aria-label="Next artwork"
-            >
-              &#8594;
-            </button>
-          </div>
-          <div className="mt-4 text-sm text-gray-500">
-            Artwork {currentIndex + 1} of {exhibition.artworks.length}
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
+      );
+    }
