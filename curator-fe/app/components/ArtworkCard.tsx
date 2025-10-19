@@ -157,7 +157,7 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
     
     try {
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'http://localhost:9090/api');
-      const response = await fetch(`${API_BASE_URL}/exhibitions`, {
+      const response = await fetch(`${API_BASE_URL}/exhibitions/user`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
