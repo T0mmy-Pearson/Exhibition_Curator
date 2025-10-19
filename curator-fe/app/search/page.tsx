@@ -84,7 +84,7 @@ export default function SearchPage() {
       params.append('sortOrder', filters.sortOrder);
       params.append('limit', '50');
 
-  // Use the all exhibitions endpoint (public/private distinction removed)
+  // Use the all exhibitions endpoint (p  curl -i "https://exhibition-curator-backend.onrender.com/api/exhibitions?sortBy=createdAt&sortOrder=desc&limit=50"  curl -i "https://exhibition-curator-backend.onrender.com/api/exhibitions?sortBy=createdAt&sortOrder=desc&limit=50"ublic/private distinction removed)
   const endpoint = '/exhibitions';
 
 
@@ -453,15 +453,6 @@ export default function SearchPage() {
                   </div>
                   <div className="text-sm text-gray-300">
                     Exhibitions Found
-                  </div>
-                </div>
-                <div className="text-center relative">
-                  <div className="absolute -top-2 -right-2 w-3 h-3 bg-white/20 rounded-full"></div>
-                  <div className="text-2xl font-bold text-white mb-2">
-                    {exhibitions.filter(e => e.isPublic).length}
-                  </div>
-                  <div className="text-sm text-gray-300">
-                    Public Exhibitions
                   </div>
                 </div>
                 <div className="text-center relative">

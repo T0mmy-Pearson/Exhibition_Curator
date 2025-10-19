@@ -4,7 +4,6 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { GuestProvider } from "./contexts/GuestContext";
 import { TutorialProvider } from "./contexts/TutorialContext";
 import Navigation from "./components/Navigation";
-import ImagePreloader from "./components/ImagePreloader";
 import GuestDataPrompt from "./components/GuestDataPrompt";
 import TutorialOverlay from "./components/TutorialOverlay";
 import "./globals.css";
@@ -37,7 +36,6 @@ export default function RootLayout({
         <AuthProvider>
           <GuestProvider>
             <TutorialProvider>
-              <ImagePreloader />
               <Navigation />
               <GuestDataPrompt />
               <TutorialOverlay />

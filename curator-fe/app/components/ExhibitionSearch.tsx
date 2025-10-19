@@ -9,7 +9,6 @@ export interface Exhibition {
   title: string;
   description: string;
   theme: string;
-  isPublic: boolean;
   tags: string[];
   artworks: any[];
   shareableLink?: string;

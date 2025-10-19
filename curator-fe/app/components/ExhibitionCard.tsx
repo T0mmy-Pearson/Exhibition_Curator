@@ -57,13 +57,6 @@ export default function ExhibitionCard({
             </p>
           )}
         </div>
-        <div className="flex flex-col items-end gap-2">
-          {exhibition.isPublic && (
-            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-black border border-black">
-              Public
-            </span>
-          )}
-        </div>
       </div>
 
       {/* Description */}

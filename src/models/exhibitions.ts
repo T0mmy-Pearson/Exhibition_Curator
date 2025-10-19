@@ -1,10 +1,9 @@
 // Fetch all exhibitions (optionally only public) && 
-export const fetchAllExhibitions = async (isPublicOnly: boolean = false, limit: number = 20, offset: number = 0) => {
+export const fetchAllExhibitions = async (limit: number = 20, offset: number = 0) => {
   try {
     const users = await User.find({}, 'exhibitions username firstName lastName');
     let allExhibitions = users.flatMap(user =>
       user.exhibitions
-        .filter(exhibition => !isPublicOnly || exhibition.isPublic)
         .map(exhibition => ({
           ...exhibition.toObject(),
           curator: {
@@ -14,7 +13,7 @@ export const fetchAllExhibitions = async (isPublicOnly: boolean = false, limit: 
         }))
     );
     // Sort by createdAt descending (most recent first)
-  allExhibitions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    allExhibitions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     // Apply offset and limit
     allExhibitions = allExhibitions.slice(offset, offset + limit);
     return allExhibitions;
@@ -29,7 +28,6 @@ interface ExhibitionData {
   title: string;
   description?: string;
   theme?: string;
-  isPublic?: boolean;
   tags?: string[];
   coverImageUrl?: string;
 }
@@ -48,34 +46,6 @@ export const fetchUserExhibitions = async (userId: string) => {
   }
 };
 
-// Fetch public exhibitions (for sharing)
-export const fetchPublicExhibitions = async (limit: number = 20, offset: number = 0) => {
-  try {
-    const users = await User.find(
-      { 'exhibitions.isPublic': true },
-      { 'exhibitions.$': 1, username: 1, firstName: 1, lastName: 1 }
-    )
-    .skip(offset)
-    .limit(limit);
-
-    const publicExhibitions = users.flatMap(user => 
-      user.exhibitions
-        .filter(exhibition => exhibition.isPublic)
-        .map(exhibition => ({
-          ...exhibition.toObject(),
-          curator: {
-            username: user.username,
-            fullName: user.fullName
-          }
-        }))
-    );
-
-    return publicExhibitions;
-  } catch (error) {
-    console.error('Error fetching public exhibitions:', error);
-    throw new Error('Failed to fetch public exhibitions');
-  }
-};
 
 // Fetch single exhibition by ID
 export const fetchExhibitionById = async (userId: string, exhibitionId: string) => {
@@ -99,28 +69,8 @@ export const fetchExhibitionById = async (userId: string, exhibitionId: string) 
 
 // Fetch public exhibition by shareable link
 export const fetchExhibitionByShareableLink = async (shareableLink: string) => {
-  try {
-    const user = await User.findOne(
-      { 'exhibitions.shareableLink': shareableLink, 'exhibitions.isPublic': true },
-      { 'exhibitions.$': 1, username: 1, firstName: 1, lastName: 1 }
-    );
-
-    if (!user || !user.exhibitions.length) {
-      throw new Error('Exhibition not found or not public');
-    }
-
-    const exhibition = user.exhibitions[0];
-    return {
-      ...exhibition.toObject(),
-      curator: {
-        username: user.username,
-        fullName: user.fullName
-      }
-    };
-  } catch (error) {
-    console.error('Error fetching exhibition by shareable link:', error);
-    throw new Error('Exhibition not found');
-  }
+  // This function is deprecated since isPublic is removed
+  return null;
 };
 
 // Create new exhibition
@@ -136,19 +86,12 @@ export const insertExhibition = async (userId: string, exhibitionData: Exhibitio
       throw new Error('Exhibition title is required');
     }
 
-    // Generate shareable link if exhibition is public
-    const shareableLink = exhibitionData.isPublic 
-      ? generateShareableLink(exhibitionData.title, userId)
-      : undefined;
-
     const newExhibitionData = {
       title: exhibitionData.title,
       description: exhibitionData.description || '',
       theme: exhibitionData.theme || '',
-      isPublic: exhibitionData.isPublic || false,
       tags: exhibitionData.tags || [],
       coverImageUrl: exhibitionData.coverImageUrl || '',
-      shareableLink,
       artworks: [], // Start with empty artworks array
       createdAt: new Date(),
       updatedAt: new Date()
@@ -183,14 +126,6 @@ export const updateExhibitionById = async (userId: string, exhibitionId: string,
     // Update exhibition fields
     Object.assign(exhibition, updates);
     
-    // Update shareable link if publicity status changed
-    if (updates.isPublic !== undefined) {
-      if (updates.isPublic) {
-        exhibition.shareableLink = generateShareableLink(exhibition.title, userId);
-      } else {
-        exhibition.shareableLink = undefined;
-      }
-    }
 
     exhibition.updatedAt = new Date();
     user.updatedAt = new Date();
@@ -267,7 +202,7 @@ export const removeArtworkFromExhibition = async (userId: string, exhibitionId: 
 };
 
 // Search exhibitions by title or theme
-export const searchExhibitions = async (query: string, isPublicOnly: boolean = false, limit: number = 20, offset: number = 0) => {
+export const searchExhibitions = async (query: string, limit: number = 20, offset: number = 0) => {
   try {
     const searchRegex = new RegExp(query, 'i');
     const matchConditions: any = {
@@ -278,10 +213,6 @@ export const searchExhibitions = async (query: string, isPublicOnly: boolean = f
         { 'exhibitions.tags': { $in: [searchRegex] } }
       ]
     };
-
-    if (isPublicOnly) {
-      matchConditions['exhibitions.isPublic'] = true;
-    }
 
     const users = await User.find(matchConditions)
       .select('exhibitions username firstName lastName')
@@ -296,8 +227,7 @@ export const searchExhibitions = async (query: string, isPublicOnly: boolean = f
             exhibition.description?.match(searchRegex) ||
             exhibition.theme?.match(searchRegex) ||
             exhibition.tags?.some((tag: string) => tag.match(searchRegex));
-          
-          return matchesQuery && (!isPublicOnly || exhibition.isPublic);
+          return matchesQuery;
         })
         .map(exhibition => ({
           ...exhibition.toObject(),

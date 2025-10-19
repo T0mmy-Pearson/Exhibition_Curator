@@ -37,6 +37,7 @@ exhibitionsRouter.get('/', getAllExhibitions);
 
 
 // Personal exhibition management (protected)
+// Protected routes (authentication required)
 exhibitionsRouter.use(authenticateToken);
 exhibitionsRouter.get('/user', getExhibitions);
 exhibitionsRouter.post('/', createExhibition);
