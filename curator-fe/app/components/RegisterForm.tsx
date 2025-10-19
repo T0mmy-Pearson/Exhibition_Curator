@@ -9,7 +9,7 @@ interface RegisterFormProps {
 }
 
 export default function RegisterForm({ onSwitchToLogin, onClose }: RegisterFormProps) {
-  const { register, isLoading, error } = useAuth();
+  const { register, isLoading } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -48,9 +48,9 @@ export default function RegisterForm({ onSwitchToLogin, onClose }: RegisterFormP
     }
 
     try {
-      const { confirmPassword, ...registrationData } = formData;
-      await register(registrationData);
-      onClose?.();
+    const { confirmPassword, ...registrationData } = formData;
+    await register(registrationData);
+    onClose?.();
     } catch (error) {
       // Error is handled by the context
     }
@@ -68,11 +68,6 @@ export default function RegisterForm({ onSwitchToLogin, onClose }: RegisterFormP
           </p>
         </div>
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded-md">
-            <p className="text-red-700 dark:text-red-400 text-sm">{error}</p>
-          </div>
-        )}
 
         {passwordError && (
           <div className="mb-4 p-3 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded-md">

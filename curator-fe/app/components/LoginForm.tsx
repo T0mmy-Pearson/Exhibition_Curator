@@ -28,7 +28,7 @@ export default function LoginForm({ onSwitchToRegister, onClose }: LoginFormProp
     try {
       await login(formData);
       onClose?.();
-    } catch (error) {
+    } catch {
       // Error is handled by the context
     }
   };
