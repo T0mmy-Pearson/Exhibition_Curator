@@ -1,3 +1,7 @@
+import { Request, Response, NextFunction } from 'express';
+import * as exhibitionModel from '../models/exhibitions';
+import { User } from '../models/User';
+
 // Get all exhibitions (not just current user's)
 export const getAllExhibitions = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -10,9 +14,6 @@ export const getAllExhibitions = async (req: Request, res: Response, next: NextF
     next(err);
   }
 };
-import { Request, Response, NextFunction } from 'express';
-import * as exhibitionModel from '../models/exhibitions';
-import { User } from '../models/User';
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -543,10 +544,7 @@ export const searchExhibitions = async (req: AuthenticatedRequest, res: Response
       tags: exhibition.tags || [],
       createdAt: exhibition.createdAt,
       updatedAt: exhibition.updatedAt,
-      curator: exhibition.curator,
-      ...(exhibition.curator?.username === userId && {
-        artworks: exhibition.artworks || []
-      })
+      curator: exhibition.curator
     }));
 
     res.status(200).json({

@@ -84,8 +84,8 @@ export default function SearchPage() {
       params.append('sortOrder', filters.sortOrder);
       params.append('limit', '50');
 
-  // Use the all exhibitions endpoint (p  curl -i "https://exhibition-curator-backend.onrender.com/api/exhibitions?sortBy=createdAt&sortOrder=desc&limit=50"  curl -i "https://exhibition-curator-backend.onrender.com/api/exhibitions?sortBy=createdAt&sortOrder=desc&limit=50"ublic/private distinction removed)
-  const endpoint = '/exhibitions';
+  // Use the search endpoint for all exhibition fetching and searching
+  const endpoint = '/exhibitions/search';
 
 
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || (process.env.NEXT_PUBLIC_API_URL ? `${process.env.NEXT_PUBLIC_API_URL}/api` : 'http://localhost:9090/api');
