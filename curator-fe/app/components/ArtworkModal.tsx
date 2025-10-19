@@ -102,13 +102,10 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
           'Authorization': `Bearer ${token}`
         }
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setUserExhibitions(data.exhibitions || []);
-      }
+      const data = await response.json();
+      setUserExhibitions(data.exhibitions || []);
     } catch (error) {
-      console.error('Error fetching exhibitions:', error);
+      console.error('Error fetching user exhibitions:', error);
     }
   };
 

@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
 import { StandardizedArtwork } from '../types/artwork';
+import { Exhibition } from '../types/exhibition';
 import { useAuth } from '../contexts/AuthContext';
 import { useGuest } from '../contexts/GuestContext';
 import { useTutorial } from '../contexts/TutorialContext';
@@ -13,11 +14,11 @@ import GuestExhibitionModal from './GuestExhibitionModal';
 interface ArtworkCardProps {
   artwork: StandardizedArtwork;
   onClick?: (artwork: StandardizedArtwork) => void;
-  showQuickInfo?: boolean;
+  // Removed unused prop: showQuickInfo
   showAddToExhibition?: boolean;
 }
 
-export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, showAddToExhibition = true }: ArtworkCardProps) {
+export default function ArtworkCard({ artwork, onClick, showAddToExhibition = true }: ArtworkCardProps) {
   const { user, token } = useAuth();
   const { guestExhibitions, addArtworkToGuestExhibition } = useGuest();
   const { markStepComplete } = useTutorial();
@@ -26,7 +27,7 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
   const [showExhibitionDropdown, setShowExhibitionDropdown] = useState(false);
   const [showCreateExhibitionModal, setShowCreateExhibitionModal] = useState(false);
   const [showGuestExhibitionModal, setShowGuestExhibitionModal] = useState(false);
-  const [userExhibitions, setUserExhibitions] = useState<any[]>([]);
+  const [userExhibitions, setUserExhibitions] = useState<Exhibition[]>([]);
   const [addingToExhibition, setAddingToExhibition] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -132,7 +133,7 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
     }
   };
 
-  const handleExhibitionCreated = (newExhibition: any) => {
+  const handleExhibitionCreated = (newExhibition: Exhibition) => {
     // Add the artwork to the newly created exhibition
     if (newExhibition && newExhibition._id) {
       addToExhibition(newExhibition._id);
@@ -142,11 +143,10 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
     }
   };
 
-  const handleGuestExhibitionCreated = (newExhibition: any) => {
+  const handleGuestExhibitionCreated = (exhibitionId: string) => {
     // Add the artwork to the newly created guest exhibition
-    if (newExhibition && newExhibition.id) {
-      addToGuestExhibition(newExhibition.id);
-      
+    if (exhibitionId) {
+      addToGuestExhibition(exhibitionId);
       // Tutorial progression: mark create-exhibition step complete
       markStepComplete('create-exhibition');
     }
@@ -164,8 +164,8 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
       });
 
       if (response.ok) {
-        const data = await response.json();
-        setUserExhibitions(data.exhibitions || []);
+  const data = await response.json();
+  setUserExhibitions(data.exhibitions || []);
       }
     } catch (error) {
       console.error('Error fetching exhibitions:', error);
@@ -178,30 +178,12 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
     setAddingToExhibition(true);
     try {
       // Create artwork data for guest exhibition
-      const artworkData = {
-        artworkId: artwork.objectID?.toString() || artwork.id,
-        title: artwork.title || 'Untitled',
-        artist: artwork.artist || 'Unknown Artist',
-        date: artwork.date || '',
-        medium: artwork.medium || '',
-        department: artwork.department || '',
-        culture: artwork.culture || '',
-        dimensions: artwork.dimensions || '',
-        imageUrl: artwork.imageUrl || '',
-        primaryImageSmall: artwork.smallImageUrl || '',
-        additionalImages: artwork.additionalImages || [],
-        tags: artwork.tags || [],
-        description: artwork.description || '',
-        museumSource: artwork.source?.toLowerCase() || 'other',
-        isHighlight: artwork.isHighlight || false
-      };
-
-      // Add artwork to guest exhibition
-      addArtworkToGuestExhibition(exhibitionId, artworkData);
+      // Add artwork to guest exhibition using StandardizedArtwork type
+      addArtworkToGuestExhibition(exhibitionId, artwork);
       
       showSuccess(
-        'Artwork Added',
-        `Added "${artworkData.title}" to guest exhibition`
+  'Artwork Added',
+  `Added "${artwork.title}" to guest exhibition`
       );
 
       setShowExhibitionDropdown(false);
@@ -337,7 +319,7 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
           try {
             errorDetails = JSON.parse(errorText);
             console.error('Parsed error response:', errorDetails);
-          } catch (parseError) {
+          } catch {
             errorDetails = { message: errorText };
             console.error('Plain text error response:', errorText);
           }

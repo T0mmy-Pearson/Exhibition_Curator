@@ -6,6 +6,7 @@ import ArtworkModal, { ArtworkDetails } from './ArtworkModal';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorDisplay from './ErrorDisplay';
 import { StandardizedArtwork } from '../types/artwork';
+import { ArtworkSearchResponse } from '../types/artwork';
 import { API_ENDPOINTS, buildApiUrl, apiRequest } from '../config/api';
 
 interface ArtworkListProps {
@@ -66,7 +67,7 @@ export default function ArtworkList({
       console.log('Fetching artworks from:', apiUrl);
       
       // Use centralized API request function
-      const data = await apiRequest(apiUrl) as any;
+  const data = await apiRequest(apiUrl) as ArtworkSearchResponse;
       
       console.log('Received data:', data);
       setArtworks(data.artworks || []);
