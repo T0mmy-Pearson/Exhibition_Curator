@@ -205,7 +205,7 @@ export default function CreateExhibitionModal({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6" data-tutorial="exhibition-form">
           {/* Error message */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-md p-4">

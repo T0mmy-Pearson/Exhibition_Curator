@@ -11,7 +11,8 @@ export type LoginTrigger =
   | 'create-exhibition' 
   | 'manual' 
   | 'share-exhibition'
-  | 'add-to-exhibition';
+  | 'add-to-exhibition'
+  | 'save-work';
 
 type LoginPromptType = 
   | 'general' 

@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
+import { useTutorial } from '../contexts/TutorialContext';
 import { useLoginPrompt } from '../hooks/useLoginPrompt';
 import ExhibitionSearch, { Exhibition } from '../components/ExhibitionSearch';
 import ExhibitionList from '../components/ExhibitionList';
@@ -28,10 +29,14 @@ export default function SearchPage() {
   const loginPrompt = useLoginPrompt();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { isActive, currentFlow, markStepComplete } = useTutorial();
   
   // Get initial search mode from URL parameter, default to 'exhibitions'
   const initialMode = (searchParams.get('mode') as SearchMode) || 'exhibitions';
-  const [searchMode, setSearchMode] = useState<SearchMode>(initialMode);
+  const isTutorialMode = searchParams.get('tutorial') === 'first-curation';
+  
+  // If in tutorial mode, force artwork search mode
+  const [searchMode, setSearchMode] = useState<SearchMode>(isTutorialMode ? 'artworks' : initialMode);
   const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
   const [artworks, setArtworks] = useState<StandardizedArtwork[]>([]);
   const [loading, setLoading] = useState(false);
@@ -259,6 +264,13 @@ export default function SearchPage() {
       }));
       
       setArtworks(standardizedArtworks);
+      
+      // Tutorial progression: mark search step complete if in tutorial mode
+      if (isTutorialMode && isActive && currentFlow === 'first-curation') {
+        setTimeout(() => {
+          markStepComplete('search-artwork');
+        }, 1000);
+      }
     } catch (err) {
       console.error('💥 Artwork search error:', err);
       if (err instanceof Error && err.message.includes('429')) {
@@ -275,7 +287,7 @@ export default function SearchPage() {
     } finally {
       setLoading(false);
     }
-  }, [token, checkRateLimit]);
+  }, [token, checkRateLimit, isTutorialMode, isActive, currentFlow, markStepComplete]);
 
   // Initial load and mode change handling
   useEffect(() => {
@@ -318,48 +330,59 @@ export default function SearchPage() {
 
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-white relative overflow-hidden">
+      {/* Abstract Background Shapes */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-1/4 w-16 h-16 border border-black/5 rotate-12"></div>
+        <div className="absolute top-40 right-1/3 w-12 h-12 bg-black/3 rounded-full"></div>
+        <div className="absolute bottom-32 left-16 w-20 h-20 border-2 border-black/5 transform -rotate-45"></div>
+        <div className="absolute bottom-20 right-20 w-14 h-14 bg-black/5 transform rotate-45"></div>
+      </div>
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         {/* Page header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-black mb-4">
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold text-black mb-4">
             Discover Art & Exhibitions
           </h1>
-          <p className="text-lg text-black">
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Explore curated exhibitions and search through thousands of artworks from world-renowned museums.
           </p>
         </div>
 
         {/* Search mode toggle */}
         <div className="flex items-center justify-center mb-8">
-          <div className="bg-white rounded-lg p-1 shadow-sm border border-black">
+          <div className="bg-gray-50 p-1 border border-black relative">
+            {/* Abstract shape accent */}
+            <div className="absolute -top-2 -right-2 w-4 h-4 bg-black transform rotate-45"></div>
+            
             <button
               onClick={() => setSearchMode('exhibitions')}
-              className={`px-6 py-3 rounded-md text-sm font-medium transition-all ${
+              className={`px-6 py-3 text-sm font-medium transition-all relative ${
                 searchMode === 'exhibitions'
-                  ? 'bg-black text-white shadow-sm'
-                  : 'text-black hover:text-gray-600'
+                  ? 'bg-black text-white'
+                  : 'text-black hover:bg-gray-100'
               }`}
             >
               <span className="flex items-center gap-2">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
+                <div className="w-4 h-4 flex items-center justify-center">
+                  <div className={`w-2 h-2 ${searchMode === 'exhibitions' ? 'bg-white' : 'bg-black'} transform rotate-45`}></div>
+                </div>
                 Exhibitions
               </span>
             </button>
             <button
               onClick={() => setSearchMode('artworks')}
-              className={`px-6 py-3 rounded-md text-sm font-medium transition-all ${
+              className={`px-6 py-3 text-sm font-medium transition-all relative ${
                 searchMode === 'artworks'
-                  ? 'bg-black text-white shadow-sm'
-                  : 'text-black hover:text-gray-600'
+                  ? 'bg-black text-white'
+                  : 'text-black hover:bg-gray-100'
               }`}
             >
               <span className="flex items-center gap-2">
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+                <div className="w-4 h-4 flex items-center justify-center">
+                  <div className={`w-2 h-2 ${searchMode === 'artworks' ? 'bg-white' : 'bg-black'} rounded-full`}></div>
+                </div>
                 Artworks
               </span>
             </button>
@@ -370,12 +393,13 @@ export default function SearchPage() {
         {searchMode === 'exhibitions' ? (
           <>
             {isRateLimited && (
-              <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="mb-4 p-4 bg-gray-50 border border-black relative">
+                <div className="absolute top-2 right-2 w-3 h-3 bg-black/20 transform rotate-45"></div>
                 <div className="flex items-center">
-                  <svg className="h-5 w-5 text-yellow-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  <p className="text-yellow-800">
+                  <div className="w-5 h-5 bg-black mr-3 flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white"></div>
+                  </div>
+                  <p className="text-black">
                     Please wait a moment before making another search. The server is handling many requests.
                   </p>
                 </div>
@@ -397,12 +421,13 @@ export default function SearchPage() {
         ) : (
           <>
             {isRateLimited && (
-              <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="mb-4 p-4 bg-gray-50 border border-black relative">
+                <div className="absolute top-2 right-2 w-3 h-3 bg-black/20 transform rotate-45"></div>
                 <div className="flex items-center">
-                  <svg className="h-5 w-5 text-yellow-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  <p className="text-yellow-800">
+                  <div className="w-5 h-5 bg-black mr-3 flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white"></div>
+                  </div>
+                  <p className="text-black">
                     Please wait a moment before making another search. The server is handling many requests.
                   </p>
                 </div>
@@ -423,35 +448,47 @@ export default function SearchPage() {
           </>
         )}
 
-        {/* Quick stats or featured content */}
+        {/* Quick stats section */}
         {!loading && searchMode === 'exhibitions' && exhibitions.length > 0 && (
-          <div className="mt-12 bg-white rounded-lg shadow-sm border border-black p-6">
-            <h3 className="text-lg font-semibold text-black mb-4">
-              Discover More
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-black mb-2">
-                  {exhibitions.length}
+          <div className="mt-12 bg-black text-white p-8 relative overflow-hidden">
+            {/* Abstract Background Shapes */}
+            <div className="absolute inset-0">
+              <div className="absolute top-4 right-8 w-8 h-8 border border-white/10 rotate-45"></div>
+              <div className="absolute bottom-4 left-8 w-6 h-6 bg-white/5 rounded-full"></div>
+              <div className="absolute top-1/2 left-1/2 w-12 h-12 border border-white/5 transform -rotate-12"></div>
+            </div>
+            
+            <div className="relative z-10">
+              <h3 className="text-lg font-semibold text-white mb-6 text-center">
+                Discover More
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center relative">
+                  <div className="absolute -top-2 -right-2 w-4 h-1 bg-white/20"></div>
+                  <div className="text-2xl font-bold text-white mb-2">
+                    {exhibitions.length}
+                  </div>
+                  <div className="text-sm text-gray-300">
+                    Exhibitions Found
+                  </div>
                 </div>
-                <div className="text-sm text-black">
-                  Exhibitions Found
+                <div className="text-center relative">
+                  <div className="absolute -top-2 -right-2 w-3 h-3 bg-white/20 rounded-full"></div>
+                  <div className="text-2xl font-bold text-white mb-2">
+                    {exhibitions.filter(e => e.isPublic).length}
+                  </div>
+                  <div className="text-sm text-gray-300">
+                    Public Exhibitions
+                  </div>
                 </div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-black mb-2">
-                  {exhibitions.filter(e => e.isPublic).length}
-                </div>
-                <div className="text-sm text-black">
-                  Public Exhibitions
-                </div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-black mb-2">
-                  {new Set(exhibitions.map(e => e.theme)).size}
-                </div>
-                <div className="text-sm text-black">
-                  Different Themes
+                <div className="text-center relative">
+                  <div className="absolute -top-2 -right-2 w-3 h-3 border border-white/20 transform rotate-45"></div>
+                  <div className="text-2xl font-bold text-white mb-2">
+                    {new Set(exhibitions.map(e => e.theme)).size}
+                  </div>
+                  <div className="text-sm text-gray-300">
+                    Different Themes
+                  </div>
                 </div>
               </div>
             </div>

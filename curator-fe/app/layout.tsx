@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AuthProvider } from "./contexts/AuthContext";
+import { GuestProvider } from "./contexts/GuestContext";
+import { TutorialProvider } from "./contexts/TutorialContext";
 import Navigation from "./components/Navigation";
 import ImagePreloader from "./components/ImagePreloader";
+import GuestDataPrompt from "./components/GuestDataPrompt";
+import TutorialOverlay from "./components/TutorialOverlay";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -31,11 +35,17 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
-          <ImagePreloader />
-          <Navigation />
-          <main>
-            {children}
-          </main>
+          <GuestProvider>
+            <TutorialProvider>
+              <ImagePreloader />
+              <Navigation />
+              <GuestDataPrompt />
+              <TutorialOverlay />
+              <main>
+                {children}
+              </main>
+            </TutorialProvider>
+          </GuestProvider>
         </AuthProvider>
       </body>
     </html>

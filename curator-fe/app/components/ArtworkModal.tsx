@@ -578,7 +578,7 @@ export default function ArtworkModal({ artwork, isOpen, onClose }: ArtworkModalP
               
               {addingToExhibition && (
                 <div className="mt-4 flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-black"></div>
+                  <div className="animate-spin h-6 w-6 border-2 border-black border-t-transparent"></div>
                   <span className="ml-2 text-black">Adding artwork...</span>
                 </div>
               )}

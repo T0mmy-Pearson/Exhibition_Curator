@@ -109,7 +109,7 @@ export default function LoginForm({ onSwitchToRegister, onClose }: LoginFormProp
           >
             {isLoading ? (
               <div className="flex items-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
                 Signing In...
               </div>
             ) : (

@@ -37,6 +37,7 @@ export default function ArtworkSearch({
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Enter search term (e.g., painting, sculpture, portrait)"
               className="w-full px-3 py-2 border border-black rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-gray-500"
+              data-tutorial="search-input"
             />
           </div>
 

@@ -52,3 +52,12 @@ body {
 .scrollbar-hide::-webkit-scrollbar { 
   display: none;  /* Safari and Chrome */
 }
+
+/* Museum names animation */
+@keyframes slide {
+  0% { transform: translateY(0); }
+  25% { transform: translateY(-1.5rem); }
+  50% { transform: translateY(-3rem); }
+  75% { transform: translateY(-4.5rem); }
+  100% { transform: translateY(0); }
+}

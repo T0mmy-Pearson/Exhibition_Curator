@@ -2,9 +2,13 @@ import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
 import { StandardizedArtwork } from '../types/artwork';
 import { useAuth } from '../contexts/AuthContext';
+import { useGuest } from '../contexts/GuestContext';
+import { useTutorial } from '../contexts/TutorialContext';
 import { useLoginPrompt } from '../hooks/useLoginPrompt';
+import { useNotifications } from '../hooks/useNotifications';
 import LoginPromptModal from './LoginPromptModal';
 import CreateExhibitionModal from './CreateExhibitionModal';
+import GuestExhibitionModal from './GuestExhibitionModal';
 
 interface ArtworkCardProps {
   artwork: StandardizedArtwork;
@@ -15,9 +19,13 @@ interface ArtworkCardProps {
 
 export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, showAddToExhibition = true }: ArtworkCardProps) {
   const { user, token } = useAuth();
+  const { guestExhibitions, addArtworkToGuestExhibition } = useGuest();
+  const { markStepComplete } = useTutorial();
+  const { showSuccess, showError } = useNotifications();
   const loginPrompt = useLoginPrompt();
   const [showExhibitionDropdown, setShowExhibitionDropdown] = useState(false);
   const [showCreateExhibitionModal, setShowCreateExhibitionModal] = useState(false);
+  const [showGuestExhibitionModal, setShowGuestExhibitionModal] = useState(false);
   const [userExhibitions, setUserExhibitions] = useState<any[]>([]);
   const [addingToExhibition, setAddingToExhibition] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -61,14 +69,26 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
     }
   };
 
-  const handleAddToExhibitionClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card click
+    const handleAddToExhibitionClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     
-    loginPrompt.requireAuth(async () => {
-      if (!token) return;
-      await fetchUserExhibitions();
+    if (user) {
+      // User is logged in, fetch their exhibitions
+      loginPrompt.requireAuth(async () => {
+        if (!token) return;
+        await fetchUserExhibitions();
+        setShowExhibitionDropdown(true);
+        
+        // Tutorial progression: mark add-to-exhibition step complete
+        markStepComplete('add-to-exhibition');
+      }, 'add-to-exhibition', { artworkTitle: artwork?.title });
+    } else {
+      // Guest user, show guest exhibitions or prompt to create
       setShowExhibitionDropdown(true);
-    }, 'add-to-exhibition', { artworkTitle: artwork?.title });
+      
+      // Tutorial progression: mark add-to-exhibition step complete
+      markStepComplete('add-to-exhibition');
+    }
   };
 
   // Close dropdown when clicking outside (but not on mouse movement)
@@ -104,13 +124,31 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
   const handleCreateNewExhibition = () => {
     console.log('Creating new exhibition clicked');
     setShowExhibitionDropdown(false);
-    setShowCreateExhibitionModal(true);
+    
+    if (user) {
+      setShowCreateExhibitionModal(true);
+    } else {
+      setShowGuestExhibitionModal(true);
+    }
   };
 
   const handleExhibitionCreated = (newExhibition: any) => {
     // Add the artwork to the newly created exhibition
     if (newExhibition && newExhibition._id) {
       addToExhibition(newExhibition._id);
+      
+      // Tutorial progression: mark create-exhibition step complete
+      markStepComplete('create-exhibition');
+    }
+  };
+
+  const handleGuestExhibitionCreated = (newExhibition: any) => {
+    // Add the artwork to the newly created guest exhibition
+    if (newExhibition && newExhibition.id) {
+      addToGuestExhibition(newExhibition.id);
+      
+      // Tutorial progression: mark create-exhibition step complete
+      markStepComplete('create-exhibition');
     }
   };
 
@@ -131,6 +169,50 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
       }
     } catch (error) {
       console.error('Error fetching exhibitions:', error);
+    }
+  };
+
+  const addToGuestExhibition = async (exhibitionId: string) => {
+    if (!artwork) return;
+
+    setAddingToExhibition(true);
+    try {
+      // Create artwork data for guest exhibition
+      const artworkData = {
+        artworkId: artwork.objectID?.toString() || artwork.id,
+        title: artwork.title || 'Untitled',
+        artist: artwork.artist || 'Unknown Artist',
+        date: artwork.date || '',
+        medium: artwork.medium || '',
+        department: artwork.department || '',
+        culture: artwork.culture || '',
+        dimensions: artwork.dimensions || '',
+        imageUrl: artwork.imageUrl || '',
+        primaryImageSmall: artwork.smallImageUrl || '',
+        additionalImages: artwork.additionalImages || [],
+        tags: artwork.tags || [],
+        description: artwork.description || '',
+        museumSource: artwork.source?.toLowerCase() || 'other',
+        isHighlight: artwork.isHighlight || false
+      };
+
+      // Add artwork to guest exhibition
+      addArtworkToGuestExhibition(exhibitionId, artworkData);
+      
+      showSuccess(
+        'Artwork Added',
+        `Added "${artworkData.title}" to guest exhibition`
+      );
+
+      setShowExhibitionDropdown(false);
+    } catch (error) {
+      console.error('Error adding artwork to guest exhibition:', error);
+      showError(
+        'Error',
+        'Failed to add artwork to exhibition'
+      );
+    } finally {
+      setAddingToExhibition(false);
     }
   };
 
@@ -326,6 +408,7 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
               onClick={handleAddToExhibitionClick}
               className="p-2 rounded-full transition-all transform hover:scale-110 bg-white text-black border border-black shadow-lg hover:bg-gray-50"
               title="Add to Exhibition"
+              data-tutorial="add-button"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
@@ -383,6 +466,13 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
         isOpen={showCreateExhibitionModal}
         onClose={() => setShowCreateExhibitionModal(false)}
         onSuccess={handleExhibitionCreated}
+      />
+
+      {/* Guest Exhibition Modal */}
+      <GuestExhibitionModal
+        isOpen={showGuestExhibitionModal}
+        onClose={() => setShowGuestExhibitionModal(false)}
+        onSuccess={handleGuestExhibitionCreated}
       />
 
       {/* Login Prompt Modal */}
@@ -443,35 +533,65 @@ export default function ArtworkCard({ artwork, onClick, showQuickInfo = true, sh
             </button>
 
             {/* Existing Exhibitions */}
-            {userExhibitions.length === 0 ? (
-              <div className="text-center py-4 text-gray-600">
-                <p className="text-sm">No exhibitions yet.</p>
-              </div>
+            {user ? (
+              // Show user exhibitions for logged-in users
+              userExhibitions.length === 0 ? (
+                <div className="text-center py-4 text-gray-600">
+                  <p className="text-sm">No exhibitions yet.</p>
+                </div>
+              ) : (
+                userExhibitions.map((exhibition) => (
+                  <button
+                    key={exhibition._id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log('Exhibition selected:', exhibition.title);
+                      addToExhibition(exhibition._id);
+                    }}
+                    disabled={addingToExhibition}
+                    className="w-full p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 text-left border border-gray-200"
+                  >
+                    <div className="font-medium line-clamp-1 text-black">{exhibition.title}</div>
+                    <div className="text-sm text-gray-600 mt-1">
+                      {exhibition.artworks?.length || 0} artworks
+                    </div>
+                  </button>
+                ))
+              )
             ) : (
-              userExhibitions.map((exhibition) => (
-                <button
-                  key={exhibition._id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    console.log('Exhibition selected:', exhibition.title);
-                    addToExhibition(exhibition._id);
-                  }}
-                  disabled={addingToExhibition}
-                  className="w-full p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 text-left border border-gray-200"
-                >
-                  <div className="font-medium line-clamp-1 text-black">{exhibition.title}</div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    {exhibition.artworks?.length || 0} artworks
-                  </div>
-                </button>
-              ))
+              // Show guest exhibitions for guest users
+              guestExhibitions.length === 0 ? (
+                <div className="text-center py-4 text-gray-600">
+                  <p className="text-sm">No exhibitions yet.</p>
+                  <p className="text-xs text-gray-500 mt-1">Create your first exhibition to get started!</p>
+                </div>
+              ) : (
+                guestExhibitions.map((exhibition) => (
+                  <button
+                    key={exhibition.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log('Guest exhibition selected:', exhibition.title);
+                      addToGuestExhibition(exhibition.id);
+                    }}
+                    disabled={addingToExhibition}
+                    className="w-full p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50 text-left border border-gray-200"
+                  >
+                    <div className="font-medium line-clamp-1 text-black">{exhibition.title}</div>
+                    <div className="text-sm text-gray-600 mt-1">
+                      {exhibition.artworks?.length || 0} artworks
+                      <span className="ml-2 text-xs bg-gray-200 px-2 py-1 rounded">Guest</span>
+                    </div>
+                  </button>
+                ))
+              )
             )}
           </div>
 
           {/* Loading State */}
           {addingToExhibition && (
             <div className="mt-4 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-5 w-5 border-2 border-black border-t-transparent"></div>
+              <div className="animate-spin h-5 w-5 border-2 border-black border-t-transparent"></div>
               <span className="ml-2 text-sm text-black">Adding...</span>
             </div>
           )}
