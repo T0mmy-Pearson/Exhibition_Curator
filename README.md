@@ -1,301 +1,101 @@
-# Exhibition Curator
 
-A full-stack web application for curating, sharing, and exploring art exhibitions using public museum APIs.
+# Exhibition Curator - Setup Guide
 
-## Features
-- Curate exhibitions with artworks from the Met Museum, V&A, and more
-- User authentication and profiles
-- Public and private exhibitions
-- Responsive Next.js frontend
-- Express/Node.js backend with MongoDB
+Welcome to the Exhibition Curator project! This guide will help you set up the project on your computer for local development and testing.
+
+---
 
 ## Prerequisites
-- Node.js (v18+ recommended)
-- npm or yarn
-- MongoDB Atlas account (or local MongoDB)
 
-## Getting Started
+- **Node.js** (v18 or later recommended)
+- **npm** (comes with Node.js)
+- **MongoDB** (Atlas or local, see backend setup)
 
-### 1. Clone the repository
-```bash
+---
+
+## 1. Clone the Repository
+
+```
 git clone https://github.com/T0mmy-Pearson/Exhibition_Curator.git
 cd Exhibition_Curator
 ```
 
-### 2. Install dependencies
-#### Backend
-```bash
+---
+
+## 2. Backend Setup (`be/`)
+
+```
 cd be
 npm install
 ```
-#### Frontend
-```bash
-cd ../curator-fe
-npm install
+
+### Environment Variables
+
+Copy `.env.example` to `.env` and fill in your MongoDB connection string and any other required variables.
+
+### Database Setup
+
+Run the setup script to initialize the database:
+
 ```
-
-### 3. Set up environment variables
-#### Backend (`be/.env`)
+npm run setup
 ```
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-NEXT_PUBLIC_API_URL=http://localhost:5000
-```
-#### Frontend (`curator-fe/.env.local`)
-```
-NEXT_PUBLIC_API_URL=http://localhost:5000
-```
-
-### 4. Run the backend server
-```bash
-cd be
-npm run dev
-```
-The backend will start on `http://localhost:5000`.
-
-### 5. Run the frontend (Next.js)
-```bash
-cd ../curator-fe
-npm run dev
-```
-The frontend will start on `http://localhost:3000`.
-
-## Database Setup
-- By default, the backend connects to MongoDB Atlas. You can use a local MongoDB instance if preferred.
-- See `be/MONGODB_SETUP.md` for details.
-
-## Seeding Data
-- To seed the database for development, use the scripts in `root/db/seeds/`.
-
-## Testing
-- Backend: `npm test` in `root`
-- Frontend: `npm test` in `curator-fe/`
-
-## Deployment
-- You can deploy the backend and frontend separately (e.g., Render, Vercel).
-- Update `NEXT_PUBLIC_API_URL` in both `.env` files to match your deployment URLs.
-
-## Troubleshooting
-- Ensure MongoDB is running and accessible.
-- Check `.env` files for correct API URLs and secrets.
-- For API rate limits, try using your own museum API keys if supported.
-
-## License
-MIT
-
-## Contact
-For questions or contributions, open an issue or pull request on GitHub.
 
 ---
 
-# Backend API Reference
+## 3. Frontend Setup (`curator-fe/`)
 
-# Exhibition Curator API
-
-A Node.js Express backend API for managing virtual museum exhibitions. This API allows users to search artworks from multiple museum APIs, create personalized exhibitions, and manage curated collections.
-
-## Features
-
-- **User Authentication**: Registration, login, and JWT-based authentication
-- **Artwork Search**: Integration with multiple museum APIs (Metropolitan Museum of Art, Rijksmuseum)
-- **Exhibition Management**: Create, update, and manage virtual exhibitions
-- **Favorites System**: Save and organize favorite artworks
-- **RESTful API Design**: Following best practices with comprehensive error handling
-
-## Tech Stack
-
-- **Backend**: Node.js, Express.js, TypeScript
-- **Database**: MongoDB (with embedded document structure)
-- **Authentication**: JWT, bcrypt
-- **External APIs**: Metropolitan Museum of Art API, Rijksmuseum API
-- **Testing**: Jest, Supertest
-- **Security**: Helmet, CORS, Rate limiting
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v18 or higher)
-- MongoDB (v5 or higher) - local installation or MongoDB Atlas
-- npm or yarn
-
-### Installation
-
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd exhibition-curator-api
 ```
-
-2. Install dependencies:
-```bash
+cd ../curator-fe
 npm install
 ```
 
-3. Set up environment variables:
-```bash
-cp .env.example .env
+### Running the Frontend
+
+Start the development server:
+
 ```
-
-Edit `.env` with your configuration:
-- MongoDB connection URI
-- JWT secret
-- Museum API keys
-
-4. Ensure MongoDB is running (local or cloud):
-```bash
-# For local MongoDB
-mongod
-
-# Or use MongoDB Atlas cloud service
-```
-
-5. Build the TypeScript code:
-```bash
-npm run build
-```
-
-### Running the Application
-
-#### Development Mode
-```bash
 npm run dev
 ```
 
-#### Production Mode
-```bash
-npm start
+The app will be available at [http://localhost:3000](http://localhost:3000)
+
+---
+
+## 4. Logging In (Demo Credentials)
+
+You can log in with the following test account:
+
+**Email:** t.pearson0209@gmail.com  
+**Password:** testtest123
+
+---
+
+## 5. Useful Scripts
+
+- `npm run dev` - Start the development server
+- `npm run build` - Build for production
+- `npm run start` - Start the production server
+- `npm run lint` - Run ESLint
+
+---
+
+## 6. Troubleshooting
+
+- Ensure both backend and frontend are running for full functionality
+- If you change environment variables, restart the servers
+- For deployment, set the frontend root to `curator-fe` in your deployment platform
+
+---
+
+## 7. Project Structure
+
+```
+Exhibition_Curator/
+├──            # Backend (Express, MongoDB)
+├── curator-fe/   # Frontend (Next.js, React, Tailwind)
+└── README.md     # This file
 ```
 
-#### Running Tests
-```bash
-npm test
-```
+---
 
-#### Watch Mode for Tests
-```bash
-npm run test:watch
-```
-
-## API Endpoints
-
-### Authentication
-- `POST /api/users/register` - User registration
-- `POST /api/users/login` - User login
-
-### Users
-- `GET /api/users` - Get all users (protected)
-- `GET /api/users/:user_id` - Get user by ID (protected)
-- `PATCH /api/users/:user_id` - Update user (protected)
-- `DELETE /api/users/:user_id` - Delete user (protected)
-
-### Artworks
-- `GET /api/artworks/search` - Search artworks with filters
-- `GET /api/artworks/:artwork_id` - Get artwork details
-- `GET /api/artworks/favorites/:user_id` - Get user's favorite artworks (protected)
-- `POST /api/artworks/favorites` - Add artwork to favorites (protected)
-- `DELETE /api/artworks/favorites/:artwork_id` - Remove from favorites (protected)
-
-### Exhibitions
-- `GET /api/exhibitions/public/:exhibition_id` - View public exhibition
-- `GET /api/exhibitions` - Get user's exhibitions (protected)
-- `GET /api/exhibitions/:exhibition_id` - Get exhibition details (protected)
-- `POST /api/exhibitions` - Create new exhibition (protected)
-- `PATCH /api/exhibitions/:exhibition_id` - Update exhibition (protected)
-- `DELETE /api/exhibitions/:exhibition_id` - Delete exhibition (protected)
-- `POST /api/exhibitions/:exhibition_id/artworks` - Add artwork to exhibition (protected)
-- `DELETE /api/exhibitions/:exhibition_id/artworks/:artwork_id` - Remove artwork from exhibition (protected)
-
-## Database Structure
-
-The application uses MongoDB with an embedded document structure:
-
-### User Document Structure
-```javascript
-{
-  _id: ObjectId,
-  username: String,
-  email: String,
-  password: String (hashed),
-  firstName: String,
-  lastName: String,
-  bio: String,
-  profileImageUrl: String,
-  isActive: Boolean,
-  exhibitions: [
-    {
-      _id: ObjectId,
-      title: String,
-      description: String,
-      theme: String,
-      isPublic: Boolean,
-      shareableLink: String,
-      artworks: [
-        {
-          artworkId: String,
-          title: String,
-          artist: String,
-          date: String,
-          medium: String,
-          imageUrl: String,
-          museumSource: String,
-          addedAt: Date
-        }
-      ],
-      createdAt: Date,
-      updatedAt: Date,
-      tags: [String],
-      coverImageUrl: String
-    }
-  ],
-  favoriteArtworks: [
-    {
-      artworkId: String,
-      title: String,
-      artist: String,
-      imageUrl: String,
-      museumSource: String,
-      addedAt: Date
-    }
-  ],
-  preferences: {
-    defaultExhibitionPrivacy: Boolean,
-    emailNotifications: Boolean,
-    preferredMuseums: [String],
-    interests: [String]
-  },
-  createdAt: Date,
-  updatedAt: Date,
-  lastLoginAt: Date
-}
-```
-
-This structure follows the requirement for a **single document per user, with exhibitions embedded, and artworks embedded within exhibitions**.
-
-## Museum APIs Integration
-
-### Metropolitan Museum of Art API
-- **Base URL**: `https://collectionapi.metmuseum.org/public/collection/v1`
-- **Features**: Search objects, get object details, filter by department
-- **Rate Limits**: No API key required, reasonable rate limits
-
-### Rijksmuseum API
-- **Base URL**: `https://www.rijksmuseum.nl/api/en/collection`
-- **Features**: Search collection, get object details, high-quality images
-- **Rate Limits**: API key required, 10,000 requests/day
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the ISC License.
-
-## Support
-
-For support and questions, please open an issue in the repository.
