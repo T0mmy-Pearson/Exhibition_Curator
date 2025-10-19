@@ -1,5 +1,7 @@
 'use client';
 
+import { StandardizedArtwork } from '../types/artwork';
+
 import { useState, useEffect } from 'react';
 // Using simple SVG icons instead of external dependencies
 
@@ -10,7 +12,7 @@ export interface Exhibition {
   description: string;
   theme: string;
   tags: string[];
-  artworks: any[];
+  artworks: StandardizedArtwork[];
   shareableLink?: string;
   createdAt: string;
   updatedAt: string;
@@ -212,7 +214,7 @@ export default function ExhibitionSearch({ onSearch, loading = false }: Exhibiti
           <div className="mt-4 flex flex-wrap gap-2">
             {filters.query && (
               <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-black text-white">
-                Search: "{filters.query}"
+                Search: &quot;{filters.query}&quot;
               </span>
             )}
             {filters.theme !== 'All Themes' && (

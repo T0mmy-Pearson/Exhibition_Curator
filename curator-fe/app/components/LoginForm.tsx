@@ -9,7 +9,7 @@ interface LoginFormProps {
 }
 
 export default function LoginForm({ onSwitchToRegister, onClose }: LoginFormProps) {
-  const { login, isLoading, error } = useAuth();
+  const { login, isLoading } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -45,11 +45,6 @@ export default function LoginForm({ onSwitchToRegister, onClose }: LoginFormProp
           </p>
         </div>
 
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-300 rounded-md">
-            <p className="text-red-700 text-sm">{error}</p>
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -121,7 +116,7 @@ export default function LoginForm({ onSwitchToRegister, onClose }: LoginFormProp
         {onSwitchToRegister && (
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <button
                 onClick={onSwitchToRegister}
                 className="font-medium text-black hover:text-gray-700 transition-colors underline"

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 
@@ -12,10 +13,16 @@ export type LoginTrigger =
   | 'add-to-exhibition'
   | 'save-work';
 
-type LoginPromptType = 
-  | 'general' 
-  | 'create-exhibition' 
-  | 'add-to-exhibition'
+// Removed unused LoginPromptType
+
+interface LoginPromptModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  trigger: LoginTrigger;
+  defaultTab?: 'login' | 'register';
+  artworkTitle?: string;
+  onLoginSuccess?: () => void;
+}
 
 interface LoginPromptModalProps {
   isOpen: boolean;
@@ -182,10 +189,11 @@ export default function LoginPromptModal({
         {/* Single artwork backdrop */}
         {backdropImage && (
           <div className="absolute inset-0">
-            <img 
+            <Image 
               src={backdropImage}
               alt="Artwork backdrop"
-              className="w-full h-full object-cover opacity-30"
+              fill
+              className="object-cover opacity-30"
               style={{
                 filter: 'blur(1px) brightness(0.7)'
               }}
@@ -222,7 +230,7 @@ export default function LoginPromptModal({
                 {/* Benefits */}
                 <div className="bg-gray-50 rounded-lg p-4 mb-6">
                   <h3 className="text-sm font-semibold text-gray-900 mb-3">
-                    What you'll get:
+                    What you&apos;ll get:
                   </h3>
                   <ul className="text-sm text-gray-800 space-y-2 text-left">
                     {triggerInfo.benefits.map((benefit, index) => (

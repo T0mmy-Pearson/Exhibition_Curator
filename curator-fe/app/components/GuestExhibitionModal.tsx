@@ -88,7 +88,7 @@ export default function GuestExhibitionModal({ isOpen, onClose, onSuccess }: Gue
         {!user && (
           <div className="mb-4 p-3 bg-gray-50 border border-gray-200">
             <p className="text-sm text-gray-600">
-              You're creating as a guest. Register later to save your work permanently!
+              You&apos;re creating as a guest. Register later to save your work permanently!
             </p>
           </div>
         )}

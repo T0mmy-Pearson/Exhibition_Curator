@@ -52,8 +52,7 @@ export default function GuestDataPrompt() {
   };
 
   const handleRegisterPrompt = () => {
-    setShowLoginModal(true);
-  };
+    // Removed unused handleRegisterPrompt
 
   if (!showPrompt) return null;
 
@@ -78,7 +77,7 @@ export default function GuestDataPrompt() {
               <ul className="space-y-1">
                 {guestExhibitions.map(exhibition => (
                   <li key={exhibition.id} className="text-sm text-gray-600 flex justify-between">
-                    <span>"{exhibition.title}"</span>
+                  <span>&quot;{exhibition.title}&quot;</span>
                     <span>{exhibition.artworks.length} artworks</span>
                   </li>
                 ))}
@@ -124,4 +123,5 @@ export default function GuestDataPrompt() {
       />
     </>
   );
+}
 }
