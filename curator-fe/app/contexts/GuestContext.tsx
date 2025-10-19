@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { StandardizedArtwork } from '../types/artwork';
 import { useAuth } from './AuthContext';
 
 export interface GuestExhibition {
@@ -9,7 +10,7 @@ export interface GuestExhibition {
   description: string;
   theme: string;
   tags: string[];
-  artworks: any[];
+  artworks: StandardizedArtwork[];
   createdAt: string;
   isGuest: true;
 }
@@ -20,7 +21,7 @@ interface GuestContextType {
   createGuestExhibition: (exhibition: Omit<GuestExhibition, 'id' | 'createdAt' | 'isGuest'>) => string;
   updateGuestExhibition: (id: string, updates: Partial<GuestExhibition>) => void;
   deleteGuestExhibition: (id: string) => void;
-  addArtworkToGuestExhibition: (exhibitionId: string, artwork: any) => void;
+  addArtworkToGuestExhibition: (exhibitionId: string, artwork: StandardizedArtwork) => void;
   removeArtworkFromGuestExhibition: (exhibitionId: string, artworkId: string) => void;
   setCurrentGuestExhibition: (exhibition: GuestExhibition | null) => void;
   transferGuestDataToUser: () => Promise<void>;
@@ -121,7 +122,7 @@ export function GuestProvider({ children }: GuestProviderProps) {
     }
   };
 
-  const addArtworkToGuestExhibition = (exhibitionId: string, artwork: any) => {
+  const addArtworkToGuestExhibition = (exhibitionId: string, artwork: StandardizedArtwork) => {
     const updatedArtworks = currentGuestExhibition?.artworks.some(a => a.id === artwork.id)
       ? currentGuestExhibition.artworks
       : [...(currentGuestExhibition?.artworks || []), artwork];

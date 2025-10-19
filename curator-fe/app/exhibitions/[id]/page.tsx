@@ -268,37 +268,6 @@ const params = useParams();
               );
             }
           })()}
-          {/* Artwork Description Section */}
-          {(exhibition?.artworks?.length ?? 0) > 0 && (
-            <div className="w-full mt-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-2">
-                {exhibition?.artworks?.[currentIndex]?.title ?? 'Untitled'}
-              </h2>
-              {exhibition?.artworks?.[currentIndex]?.artist && (
-                <p className="text-lg text-gray-700 mb-3">
-                  {exhibition?.artworks?.[currentIndex]?.artist}
-                </p>
-              )}
-              <div className="space-y-2">
-                {exhibition?.artworks?.[currentIndex]?.date && (
-                  <p className="text-gray-600">
-                    <span className="font-medium">Date:</span> {exhibition?.artworks?.[currentIndex]?.date}
-                  </p>
-                )}
-                {exhibition?.artworks?.[currentIndex]?.medium && (
-                  <p className="text-gray-600">
-                    <span className="font-medium">Medium:</span> {exhibition?.artworks?.[currentIndex]?.medium}
-                  </p>
-                )}
-                <p className="text-gray-600">
-                  <span className="font-medium">Source:</span> {exhibition?.artworks?.[currentIndex]?.museumSource ?? 'Unknown'}
-                </p>
-                <p className="text-gray-600">
-                  <span className="font-medium">ID:</span> {exhibition?.artworks?.[currentIndex]?.artworkId}
-                </p>
-              </div>
-            </div>
-          )}
           {/* Exhibition Description Section */}
           {exhibition?.description && (
             <div className="w-full mt-10 border-t pt-6">

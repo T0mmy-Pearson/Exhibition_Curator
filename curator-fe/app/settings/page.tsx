@@ -7,12 +7,6 @@ import { useRouter } from 'next/navigation';
 export default function SettingsPage() {
   const { user, logout } = useAuth();
   const router = useRouter();
-  
-  // Redirect if not logged in
-  if (!user) {
-    router.push('/');
-    return null;
-  }
 
   const [notifications, setNotifications] = useState({
     emailUpdates: true,
@@ -33,6 +27,12 @@ export default function SettingsPage() {
     showExhibitions: true,
     allowMessages: false
   });
+
+  // Redirect if not logged in
+  if (!user) {
+    router.push('/');
+    return null;
+  }
 
   const handleSave = () => {
     // Simulate saving settings

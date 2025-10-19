@@ -9,8 +9,6 @@ import ExhibitionSearch, { Exhibition } from '../components/ExhibitionSearch';
 import ExhibitionList from '../components/ExhibitionList';
 import ArtworkSearch from '../components/ArtworkSearch';
 import ArtworkList from '../components/ArtworkList';
-import LoadingSpinner from '../components/LoadingSpinner';
-import ErrorDisplay from '../components/ErrorDisplay';
 import LoginPromptModal from '../components/LoginPromptModal';
 import { StandardizedArtwork } from '../types/artwork';
 
@@ -61,7 +59,7 @@ export default function SearchPage() {
   }, [searchMode]);
 
   // Enhanced rate limiting function
-  const checkRateLimit = (): boolean => {
+  const checkRateLimit = useCallback((): boolean => {
     const now = Date.now();
     const timeSinceLastRequest = now - lastRequestTime;
     const minInterval = isRateLimited ? 5000 : 2000; // 5s if rate limited, 2s normally
@@ -73,7 +71,7 @@ export default function SearchPage() {
 
     setLastRequestTime(now);
     return true;
-  };
+  }, [lastRequestTime, isRateLimited]);
 
   // Search exhibitions
   const searchExhibitions = useCallback(async (filters: SearchFilters) => {
@@ -148,7 +146,7 @@ export default function SearchPage() {
       const data = await response.json();
       console.log('✅ Received exhibition data:', data);
       console.log('📊 Exhibitions count:', data.exhibitions?.length || 0);
-      console.log('📋 Exhibition titles:', data.exhibitions?.map((e: any) => e.title) || []);
+  console.log('📋 Exhibition titles:', data.exhibitions?.map((e: Exhibition) => e.title) || []);
       
       setExhibitions(data.exhibitions || []);
     } catch (err) {
@@ -231,25 +229,25 @@ export default function SearchPage() {
       console.log('🎨 Artwork data received:', data);
       
       // Convert API response to StandardizedArtwork format
-      const standardizedArtworks = (data.artworks || []).map((artwork: any) => ({
-        id: artwork.id || `${artwork.source}:${artwork.objectID || artwork.objectNumber || artwork.systemNumber}`,
-        source: artwork.source || 'met',
-        title: artwork.title || 'Untitled',
-        artist: artwork.artistDisplayName || artwork.artist || 'Unknown Artist',
+      const standardizedArtworks = (data.artworks || []).map((artwork: StandardizedArtwork) => ({
+        id: artwork.id,
+        source: artwork.source,
+        title: artwork.title,
+        artist: artwork.artist,
         artistBio: artwork.artistBio,
         culture: artwork.culture,
-        date: artwork.objectDate || artwork.date,
+        date: artwork.date,
         medium: artwork.medium,
         dimensions: artwork.dimensions,
         department: artwork.department,
         description: artwork.description,
-        imageUrl: artwork.primaryImage || artwork.imageUrl,
-        smallImageUrl: artwork.primaryImageSmall || artwork.smallImageUrl,
-        additionalImages: artwork.additionalImages || [],
-        museumUrl: artwork.objectURL || artwork.museumUrl,
-        isHighlight: artwork.isHighlight || false,
-        isPublicDomain: artwork.isPublicDomain || false,
-        tags: artwork.tags || [],
+        imageUrl: artwork.imageUrl,
+        smallImageUrl: artwork.smallImageUrl,
+        additionalImages: artwork.additionalImages,
+        museumUrl: artwork.museumUrl,
+        isHighlight: artwork.isHighlight,
+        isPublicDomain: artwork.isPublicDomain,
+        tags: artwork.tags,
         objectID: artwork.objectID,
         accessionNumber: artwork.accessionNumber,
         creditLine: artwork.creditLine,
