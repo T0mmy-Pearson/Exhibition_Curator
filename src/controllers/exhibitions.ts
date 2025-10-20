@@ -295,13 +295,14 @@ export const getPublicExhibitions = async (req: Request, res: Response, next: Ne
       }
     });
 
-    // Format exhibitions for response
+
     const formattedExhibitions = exhibitions.map((exhibition: any) => ({
       id: exhibition._id,
       title: exhibition.title,
       description: exhibition.description,
       theme: exhibition.theme,
       shareableLink: exhibition.shareableLink,
+      artworks: exhibition.artworks || [],
       artworksCount: exhibition.artworks?.length || 0,
       coverImageUrl: exhibition.coverImageUrl,
       tags: exhibition.tags || [],
