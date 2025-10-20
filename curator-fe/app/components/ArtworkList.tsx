@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from "react";
 import ArtworkCard from './ArtworkCard';
 import ArtworkModal, { ArtworkDetails } from './ArtworkModal';
 import LoadingSpinner from './LoadingSpinner';
@@ -31,7 +31,18 @@ export default function ArtworkList({
   const [error, setError] = useState<string | null>(propError !== undefined ? propError : null);
   const [selectedArtwork, setSelectedArtwork] = useState<ArtworkDetails | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [backgroundLoading, setBackgroundLoading] = useState(false);
+  const loaderRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLDivElement>(null);
 
+  // Reset offset and artworks when searchTerm or source changes
+  useEffect(() => {
+    setOffset(0);
+    setArtworks([]);
+    setHasMore(true);
+  }, [searchTerm, source]);
 
   useEffect(() => {
     if (propArtworks !== undefined) {
@@ -53,24 +64,22 @@ export default function ArtworkList({
 
   const fetchArtworks = useCallback(async () => {
     try {
-      setLoading(true);
+      setBackgroundLoading(true);
       setError(null);
-
-
       const apiUrl = buildApiUrl(API_ENDPOINTS.SEARCH_ARTWORKS, {
         q: searchTerm,
         source: source,
-        limit: limit,
-        hasImages: 'true' 
+        limit: 42,
+        offset: offset,
+        hasImages: 'true'
       });
-
-      console.log('Fetching artworks from:', apiUrl);
-      
-
-  const data = await apiRequest(apiUrl) as ArtworkSearchResponse;
-      
-      console.log('Received data:', data);
-      setArtworks(data.artworks || []);
+      const data = await apiRequest(apiUrl) as ArtworkSearchResponse;
+      if (offset === 0) {
+        setArtworks(data.artworks || []);
+      } else {
+        setArtworks(prev => [...prev, ...(data.artworks || [])]);
+      }
+      setHasMore((data.artworks?.length || 0) === 42);
     } catch (err) {
       console.error('Error fetching artworks:', err);
       if (err instanceof Error) {
@@ -84,8 +93,9 @@ export default function ArtworkList({
       }
     } finally {
       setLoading(false);
+      setBackgroundLoading(false);
     }
-  }, [searchTerm, source, limit]);
+  }, [searchTerm, source, offset]);
 
 
   const handleArtworkClick = (artwork: StandardizedArtwork) => {
@@ -143,10 +153,27 @@ export default function ArtworkList({
     if (propArtworks === undefined) {
       fetchArtworks();
     }
-  }, [fetchArtworks, propArtworks]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchArtworks, propArtworks, offset]);
+
+useEffect(() => {
+  if (!hasMore || loading || backgroundLoading) return;
+  const observer = new window.IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+      setOffset(prev => prev + 42);
+    }
+  }, { threshold: 1 });
+  if (triggerRef.current) {
+    observer.observe(triggerRef.current);
+  }
+  return () => {
+    if (triggerRef.current) observer.unobserve(triggerRef.current);
+    observer.disconnect();
+  };
+}, [hasMore, loading, backgroundLoading]);
 
   if (loading) {
-    return <LoadingSpinner message="Loading artworks..." />;
+  return <LoadingSpinner message="Loading artworks..." />;
   }
 
   if (error) {
@@ -190,7 +217,7 @@ export default function ArtworkList({
           Artworks Collection
         </h2>
         <p className="text-black">
-          Found {artworks.length} artwork{artworks.length !== 1 ? 's' : ''} 
+          Found {artworks.length} artwork{artworks.length !== 1 ? 's' : ''}
           {searchTerm && ` for "${searchTerm}"`}
         </p>
       </div>
@@ -198,13 +225,26 @@ export default function ArtworkList({
       {/* Grid of artwork cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {artworks.map((artwork) => (
-          <ArtworkCard 
-            key={artwork.id} 
-            artwork={artwork} 
+          <ArtworkCard
+            key={artwork.id}
+            artwork={artwork}
             onClick={handleArtworkClick}
           />
         ))}
       </div>
+
+      {/* Shadow box loader for infinite scroll */}
+      {backgroundLoading && (
+        <div className="w-full flex justify-center py-8" ref={loaderRef}>
+          <div className="w-64 h-32 bg-gray-200 rounded-lg shadow-lg animate-pulse flex items-center justify-center">
+            <span className="text-black text-lg">Loading more artworks...</span>
+          </div>
+        </div>
+      )}
+      {/* Loader trigger for scroll detection */}
+      {!backgroundLoading && hasMore && (
+        <div ref={triggerRef} className="w-full h-8"></div>
+      )}
 
       {/* Artwork Modal */}
       {selectedArtwork && (
