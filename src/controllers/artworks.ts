@@ -16,10 +16,10 @@ export const searchArtworks = async (req: Request, res: Response) => {
       department, 
       hasImages = 'true',
       isHighlight,
-      limit = '20' 
+  limit = '42' 
     } = req.query;
 
-    const parsedLimit = limit ? Math.min(parseInt(limit as string), 200) : 200; // Max 200 results, no default
+  const parsedLimit = limit ? Math.min(parseInt(limit as string), 200) : 42; // Max 200 results, default 42
     let allArtworks: StandardizedArtwork[] = [];
 
     // Search Met Museum if source is 'met' or 'all'

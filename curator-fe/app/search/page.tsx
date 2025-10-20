@@ -28,9 +28,9 @@ function SearchPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { isActive, currentFlow, markStepComplete } = useTutorial();
-  // ...existing code...
-  // Get initial search mode from URL parameter, default to 'exhibitions'
-  const initialMode = (searchParams.get('mode') as SearchMode) || 'exhibitions';
+
+  // Get initial search mode from URL parameter, default to 'artworks'
+  const initialMode = (searchParams.get('mode') as SearchMode) || 'artworks';
   const isTutorialMode = searchParams.get('tutorial') === 'first-curation';
 
   // If in tutorial mode, force artwork search mode
@@ -443,6 +443,7 @@ function SearchPageInner() {
               error={error}
               searchTerm={artworkSearchTerm}
               source={artworkSource as 'all' | 'met' | 'rijks' | 'va'}
+              limit={200}
             />
           </>
         )}

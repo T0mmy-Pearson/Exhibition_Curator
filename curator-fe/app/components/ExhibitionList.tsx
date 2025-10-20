@@ -24,7 +24,7 @@ export default function ExhibitionList({
   // totalCount = 0 // Removed unused prop
 }: Omit<ExhibitionListProps, 'totalCount'>) {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12;
+  const itemsPerPage = 24;
 
   if (loading) {
     return (

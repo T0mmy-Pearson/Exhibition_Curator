@@ -21,7 +21,7 @@ interface ArtworkListProps {
 export default function ArtworkList({ 
   searchTerm = 'painting', 
   source = 'all', 
-  limit = 100,
+  limit = 200,
   artworks: propArtworks,
   loading: propLoading,
   error: propError
@@ -32,7 +32,7 @@ export default function ArtworkList({
   const [selectedArtwork, setSelectedArtwork] = useState<ArtworkDetails | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Update state when props change
+
   useEffect(() => {
     if (propArtworks !== undefined) {
       setArtworks(propArtworks);
@@ -56,17 +56,17 @@ export default function ArtworkList({
       setLoading(true);
       setError(null);
 
-      // Build API URL with parameters
+
       const apiUrl = buildApiUrl(API_ENDPOINTS.SEARCH_ARTWORKS, {
         q: searchTerm,
         source: source,
         limit: limit,
-        hasImages: 'true' // Only fetch artworks with images
+        hasImages: 'true' 
       });
 
       console.log('Fetching artworks from:', apiUrl);
       
-    // Use centralized API request function
+
   const data = await apiRequest(apiUrl) as ArtworkSearchResponse;
       
       console.log('Received data:', data);
@@ -87,9 +87,9 @@ export default function ArtworkList({
     }
   }, [searchTerm, source, limit]);
 
-  // Handle artwork click
+
   const handleArtworkClick = (artwork: StandardizedArtwork) => {
-    // Convert StandardizedArtwork to ArtworkDetails format
+
     const artworkDetails: ArtworkDetails = {
       objectID: artwork.objectID?.toString(),
       artworkId: artwork.objectID?.toString(),
@@ -139,7 +139,7 @@ export default function ArtworkList({
   };
 
   useEffect(() => {
-    // Only fetch artworks if they're not provided as props
+
     if (propArtworks === undefined) {
       fetchArtworks();
     }
