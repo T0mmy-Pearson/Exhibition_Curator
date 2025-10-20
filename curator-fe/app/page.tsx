@@ -115,7 +115,7 @@ export default function Home() {
                     </div>
                   </div>
                   
-                  <button className="w-full bg-black text-white py-3 font-medium hover:bg-gray-800 transition-colors">
+                  <button className="w-full bg-black text-white py-3 font-medium hover:bg-gray-800 transition-colors" >
                     Curate Your Exhibition
                   </button>
                 </div>
@@ -229,37 +229,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Museum Partners */}
-      <div className="py-16 bg-white relative overflow-hidden">
-        {/* Abstract Background Shapes */}
-        <div className="absolute inset-0">
-          <div className="absolute top-32 left-16 w-20 h-20 border border-black/5 rotate-12"></div>
-          <div className="absolute bottom-20 right-20 w-14 h-14 bg-black/5 transform -rotate-45"></div>
-          <div className="absolute top-1/2 left-1/2 w-28 h-28 border-2 border-black/3 rounded-full"></div>
-        </div>
-        
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <h2 className="text-3xl font-bold text-black mb-12">Trusted by World-Renowned Museums</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
-            <div className="p-8 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors relative">
-              <div className="absolute top-4 right-4 w-6 h-6 border border-black/10 rotate-45"></div>
-              <h3 className="text-xl font-semibold text-black mb-2">Metropolitan Museum</h3>
-              <p className="text-gray-600">New York&apos;s premier art institution</p>
-            </div>
-            <div className="p-8 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors relative">
-              <div className="absolute top-4 right-4 w-4 h-4 bg-black/10 rounded-full"></div>
-              <h3 className="text-xl font-semibold text-black mb-2">Victoria & Albert</h3>
-              <p className="text-gray-600">London&apos;s museum of art and design</p>
-            </div>
-            <div className="p-8 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors relative">
-              <div className="absolute top-4 right-4 w-6 h-2 bg-black/10"></div>
-              <h3 className="text-xl font-semibold text-black mb-2">Rijksmuseum</h3>
-              <p className="text-gray-600">Amsterdam&apos;s national museum</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Call to Action */}
       <div className="py-20 bg-black text-white relative overflow-hidden">
         {/* Abstract Background Shapes */}
@@ -287,7 +256,7 @@ export default function Home() {
               onClick={() => setShowWelcomeModal(true)}
               className="bg-white text-black px-10 py-4 font-semibold hover:bg-gray-100 transition-all duration-200 transform hover:scale-105"
             >
-              Get Started Free
+              Get Started
             </button>
           )}
         </div>

@@ -329,10 +329,172 @@ function SearchPageInner() {
 
 
   return (
-    // All previous JSX content
-    <>
-      {/* ...existing JSX... */}
-    </>
+    <div className="min-h-screen bg-white relative overflow-hidden">
+      {/* Abstract Background Shapes */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-1/4 w-16 h-16 border border-black/5 rotate-12"></div>
+        <div className="absolute top-40 right-1/3 w-12 h-12 bg-black/3 rounded-full"></div>
+        <div className="absolute bottom-32 left-16 w-20 h-20 border-2 border-black/5 transform -rotate-45"></div>
+        <div className="absolute bottom-20 right-20 w-14 h-14 bg-black/5 transform rotate-45"></div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+        {/* Page header */}
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold text-black mb-4">
+            Discover Art & Exhibitions
+          </h1>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Explore curated exhibitions and search through thousands of artworks from world-renowned museums.
+          </p>
+        </div>
+
+        {/* Search mode toggle */}
+        <div className="flex items-center justify-center mb-8">
+          <div className="bg-gray-50 p-1 border border-black relative">
+            {/* Abstract shape accent */}
+            <div className="absolute -top-2 -right-2 w-4 h-4 bg-black transform rotate-45"></div>
+
+            <button
+              onClick={() => setSearchMode('exhibitions')}
+              className={`px-6 py-3 text-sm font-medium transition-all relative ${
+                searchMode === 'exhibitions'
+                  ? 'bg-black text-white'
+                  : 'text-black hover:bg-gray-100'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <div className="w-4 h-4 flex items-center justify-center">
+                  <div className={`w-2 h-2 ${searchMode === 'exhibitions' ? 'bg-white' : 'bg-black'} transform rotate-45`}></div>
+                </div>
+                Exhibitions
+              </span>
+            </button>
+            <button
+              onClick={() => setSearchMode('artworks')}
+              className={`px-6 py-3 text-sm font-medium transition-all relative ${
+                searchMode === 'artworks'
+                  ? 'bg-black text-white'
+                  : 'text-black hover:bg-gray-100'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <div className="w-4 h-4 flex items-center justify-center">
+                  <div className={`w-2 h-2 ${searchMode === 'artworks' ? 'bg-white' : 'bg-black'} rounded-full`}></div>
+                </div>
+                Artworks
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* Search interface */}
+        {searchMode === 'exhibitions' ? (
+          <>
+            {isRateLimited && (
+              <div className="mb-4 p-4 bg-gray-50 border border-black relative">
+                <div className="absolute top-2 right-2 w-3 h-3 bg-black/20 transform rotate-45"></div>
+                <div className="flex items-center">
+                  <div className="w-5 h-5 bg-black mr-3 flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white"></div>
+                  </div>
+                  <p className="text-black">
+                    Please wait a moment before making another search. The server is handling many requests.
+                  </p>
+                </div>
+              </div>
+            )}
+            <ExhibitionSearch 
+              onSearch={searchExhibitions}
+              loading={loading}
+            />
+
+            <ExhibitionList
+              exhibitions={exhibitions}
+              loading={loading}
+              error={error}
+              onExhibitionClick={handleExhibitionClick}
+              showPagination={true}
+            />
+          </>
+        ) : (
+          <>
+            {isRateLimited && (
+              <div className="mb-4 p-4 bg-gray-50 border border-black relative">
+                <div className="absolute top-2 right-2 w-3 h-3 bg-black/20 transform rotate-45"></div>
+                <div className="flex items-center">
+                  <div className="w-5 h-5 bg-black mr-3 flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white"></div>
+                  </div>
+                  <p className="text-black">
+                    Please wait a moment before making another search. The server is handling many requests.
+                  </p>
+                </div>
+              </div>
+            )}
+            <ArtworkSearch 
+              onSearch={searchArtworks}
+              initialSearchTerm=""
+              initialSource="all"
+            />
+            <ArtworkList
+              artworks={artworks}
+              loading={loading}
+              error={error}
+              searchTerm={artworkSearchTerm}
+              source={artworkSource as 'all' | 'met' | 'rijks' | 'va'}
+            />
+          </>
+        )}
+
+        {/* Quick stats section */}
+        {!loading && searchMode === 'exhibitions' && exhibitions.length > 0 && (
+          <div className="mt-12 bg-black text-white p-8 relative overflow-hidden">
+            {/* Abstract Background Shapes */}
+            <div className="absolute inset-0">
+              <div className="absolute top-4 right-8 w-8 h-8 border border-white/10 rotate-45"></div>
+              <div className="absolute bottom-4 left-8 w-6 h-6 bg-white/5 rounded-full"></div>
+              <div className="absolute top-1/2 left-1/2 w-12 h-12 border border-white/5 transform -rotate-12"></div>
+            </div>
+            
+            <div className="relative z-10">
+              <h3 className="text-lg font-semibold text-white mb-6 text-center">
+                Discover More
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center relative">
+                  <div className="absolute -top-2 -right-2 w-4 h-1 bg-white/20"></div>
+                  <div className="text-2xl font-bold text-white mb-2">
+                    {exhibitions.length}
+                  </div>
+                  <div className="text-sm text-gray-300">
+                    Exhibitions Found
+                  </div>
+                </div>
+                <div className="text-center relative">
+                  <div className="absolute -top-2 -right-2 w-3 h-3 border border-white/20 transform rotate-45"></div>
+                  <div className="text-2xl font-bold text-white mb-2">
+                    {new Set(exhibitions.map(e => e.theme)).size}
+                  </div>
+                  <div className="text-sm text-gray-300">
+                    Different Themes
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Login Prompt Modal */}
+        <LoginPromptModal
+          isOpen={loginPrompt.isOpen}
+          onClose={loginPrompt.hideLoginPrompt}
+          onLoginSuccess={loginPrompt.handleLoginSuccess}
+          trigger={loginPrompt.trigger}
+          artworkTitle={loginPrompt.artworkTitle}
+        />
+      </div>
+    </div>
   );
 }
 
