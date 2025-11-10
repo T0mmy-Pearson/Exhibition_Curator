@@ -57,7 +57,6 @@ FRONTEND_URL=http://localhost:3000
 # Museum API Keys (optional - some features work without them)
 MET_API_BASE_URL=https://collectionapi.metmuseum.org/public/collection/v1
 VA_API_BASE_URL=https://api.vam.ac.uk/v2
-RIJKS_API_KEY=your_rijksmuseum_api_key_if_you_have_one
 ```
 
 **⚠️ Important:** You need to generate these yourself:
