@@ -83,6 +83,25 @@ Example: `MONGODB_URI=mongodb+srv://username:password@cluster0.xxxxx.mongodb.net
 2. Start the MongoDB service
 3. Use `MONGODB_URI=mongodb://localhost:27017/exhibition_curator`
 
+#### Seed the Database (Optional but Recommended)
+
+After setting up your MongoDB connection, seed the database with sample data:
+
+```bash
+npm run seed
+```
+
+This will create:
+- 2 sample users with login credentials
+- Sample exhibitions with artworks
+- Favorite artworks for testing
+
+**Sample Login Credentials (after seeding):**
+- Username: `artlover123` / Email: `artlover@example.com` / Password: `password123`
+- Username: `curator_mike` / Email: `mike@museum.com` / Password: `password123`
+
+**Note:** The database will work without seeding - you can also create a new account from scratch. Seeding just provides sample data to explore the app immediately.
+
 #### Start the Backend Server
 
 ```bash
@@ -161,12 +180,17 @@ npm run dev
 
 ## 👤 Demo Credentials
 
-For testing purposes, you can create a new account or use these demo credentials:
+If you ran the database seed script (`npm run seed`), you can use these credentials:
 
-**Email:** `demo@example.com`  
-**Password:** `demo123`
+**Option 1:**  
+- Email: `artlover@example.com`  
+- Password: `password123`
 
-*Note: Demo credentials may not always be available - creating a new account is recommended.*
+**Option 2:**  
+- Email: `mike@museum.com`  
+- Password: `password123`
+
+**Or:** Create a new account directly in the app - no seeding required!
 
 ---
 
